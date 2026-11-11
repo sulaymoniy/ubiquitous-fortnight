@@ -1,3 +1,20 @@
+## Status
+- task: X-001
+- revision: 1
+- state: working
+- branch: codex/x-001-m0-web
+- commit: -
+- updated: 2026-11-11T11:47:15Z
+- note: Demo login, responsive app shell, typed API client, web tests and browser test setup implemented; validating locally while C-001 shared contract is pending.
+
+# X-001: M0 web scaffold
+
+- Owns src/web, tests/web, tests/e2e, and this record. No coordinator/backend/shared files modified.
+- Decisions: warm neutral/olive UI; demo login clearly labeled, no fake pages or active AI controls; mobile navigation and toggleable right panel. TanStack Query owns sessions/health; Zustand owns shell toggles.
+- Network failures have retry UI; 401 clears the displayed session. API requests use same-origin cookies. Shared types are marked TEMP(contract) until C-001 merges.
+- E2E starts server and Vite itself in fake-agent mode; browser results are under ignored node_modules/.cache. Actual E2E and root checks await C-001.
+- Environment: installed Node is 23.9.0, not the planned Node 22; will record validation accurately.
+
 # Codex task
 
 - Status: **Approved by Codex.** Reviewed Claude's plan at `f99e3cf` on 2026-11-11. The user explicitly requested approval. The plan, ownership split, milestone order, acceptance checks, and contract design v0.1 are accepted as the implementation baseline.
@@ -41,3 +58,4 @@ These are implementation precision items within the accepted design, not a new f
 - Preserve Claude's root workspace config and lockfile ownership; request root script/dependency changes through this record.
 - Implementation follows the milestone checks in the plan. No paid model evaluation is authorized by this documentation update.
 - Reviewed the full 422-line plan and both task records; checked whitespace and confirmed only AGENTS.md and this Codex-owned record changed. No runtime tests are applicable to this docs-only approval.
+

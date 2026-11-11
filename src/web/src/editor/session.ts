@@ -25,6 +25,8 @@ type SaveApi = Pick<typeof workspaceApi, 'ops' | 'update'>;
 export class PageSession {
   private base: Block[];
   private baseTitle: string;
+  private saveLabel: string | undefined;
+  private refreshAfterSave = false;
   private revision = 0;
   private savedRevision = 0;
   private listeners = new Set<() => void>();
@@ -58,7 +60,7 @@ export class PageSession {
     this.listeners.forEach((listener) => listener());
   }
   hydrate(data: GetPageResponse) {
-    if (this.state.dirty || this.state.saving) return;
+    if (this.state.dirty || this.state.saving) { this.refreshAfterSave = true; return; }
     this.base = data.blocks;
     this.baseTitle = data.page.title;
     this.emit({ page: data.page, title: data.page.title, blocks: data.blocks, error: null });
@@ -75,6 +77,7 @@ export class PageSession {
     this.emit({ ...patch, error: null });
     this.schedule();
   }
+  setSaveLabel(label: string) { this.saveLabel = label; }
   setTitle(title: string) {
     if (title !== this.state.title) this.edit({ title });
   }
@@ -191,6 +194,7 @@ export class PageSession {
   }
   private async save() {
     const revision = this.revision;
+    const label = this.saveLabel;
     const desired = this.state.blocks;
     const title = this.state.title;
     const titleChanged = title !== this.baseTitle;
@@ -204,7 +208,7 @@ export class PageSession {
           'This edit is too large to save at once. Please undo part of it and retry.',
         );
       if (ops.length) {
-        const result = await this.transport.ops(page.id, ops);
+        const result = await this.transport.ops(page.id, ops, label);
         page = result.page;
         lastChangeset = result.changesetId;
         const touched = new Map(result.blocks.map((block) => [block.id, block]));
@@ -217,6 +221,7 @@ export class PageSession {
         this.baseTitle = page.title;
       }
       this.savedRevision = revision;
+      if (this.saveLabel === label) this.saveLabel = undefined;
       const unchanged = this.revision === revision;
       this.emit({
         page,
@@ -224,6 +229,7 @@ export class PageSession {
         lastChangeset,
         ...(unchanged ? { blocks: this.base, title: page.title } : {}),
       });
+      if (this.refreshAfterSave && !this.state.dirty) { this.refreshAfterSave = false; void workspaceApi.page(page.id).then((data) => this.hydrate(data)).catch(() => {}); }
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         const conflict = VersionConflictDetails.safeParse(error.details);

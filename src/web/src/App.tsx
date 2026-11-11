@@ -8,7 +8,6 @@ import {
   Menu,
   PanelRight,
   Sparkles,
-  X,
   CircleCheck,
   WifiOff,
   RefreshCw,
@@ -21,6 +20,7 @@ import { WorkspaceProvider, useWorkspace } from './workspace/WorkspaceProvider';
 import { WorkspaceSidebar } from './workspace/WorkspaceSidebar';
 import { SearchPalette } from './workspace/SearchPalette';
 import { WorkspacePage } from './editor/PageEditor';
+import { AgentPanel } from './agent/AgentPanel';
 import { clearSessions, flushSessions } from './editor/session';
 
 function Mark() {
@@ -295,39 +295,7 @@ function Shell({ user }: { user: MockUser }) {
               </div>
             )}
           </main>
-          {assistantOpen && (
-            <aside id="assistant-panel" className="assistant-panel" aria-label="Assistant">
-              <div className="panel-title">
-                <span>
-                  <Sparkles size={14} aria-hidden="true" />
-                  Assistant
-                </span>
-                <button
-                  className="icon-button"
-                  aria-label="Close assistant"
-                  onClick={toggleAssistant}
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="assistant-empty">
-                <span className="assistant-symbol">
-                  <Sparkles size={32} strokeWidth={1.2} aria-hidden="true" />
-                </span>
-                <h2>
-                  A little help,
-                  <br />
-                  when you need it.
-                </h2>
-                <p>
-                  A space for your thinking partner.
-                  <br />
-                  The assistant is coming soon.
-                </p>
-                <span className="coming-soon">COMING SOON</span>
-              </div>
-            </aside>
-          )}
+          <AgentPanel hidden={!assistantOpen} close={toggleAssistant} />
         </div>
       </div>
       <SearchPalette />

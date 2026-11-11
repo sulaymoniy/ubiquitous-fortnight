@@ -1,20 +1,17 @@
 ## Status
-- task: X-002
+- task: X-004
 - revision: 1
 - state: ready_for_review
-- branch: codex/x-002-editor
-- commit: 66b4fa8a6c3efd0229dc8211597ce86c47b35c17
-- updated: 2026-11-11T13:16:00Z
-- note: X-002 complete on main 5583987; clean npm ci/typecheck/lint/test pass (376 tests). Running-app page/edit/reload/slash/search verification passes; title fixed; no e2e per feature-first mode.
+- branch: codex/x-004-agent-panel
+- commit: 741a74c988811fbb43c91d08f9dcba17cf5b1e82
+- updated: 2026-11-11T13:46:59Z
+- note: Minimal agent implementation complete. User explicitly requested push without checks; no validation or real API calls run.
 
-## X-002
-- Owned paths only: src/web, tests/web, this record and npm-generated lock changes. No shared/backend/coordinator files edited.
-- Built create/rename/nest/drag pages, keyboard parent selection, archive/restore notices; all 12 block types, filtered keyboard slash menu, Markdown shortcuts, block drag/nesting, code and image controls, Ctrl/Cmd+K search.
-- Per-page save queues retain dirty drafts on failure/401, ignore refetches while dirty, serialize edits and flush before navigation/logout. Save/retry state and undo are visible.
-- Core tests cover actual Tiptap round trips for every schema variant, op ordering, save timing, concurrent edits, 401 retention and title conflicts. No new e2e per feature-first mode. Clean npm ci, root typecheck/lint/test pass: 345 backend + 31 web/core tests. Running app verified create/rename/edit/reload, slash heading and Ctrl+K search with zero page errors.
-- Fixed the double-encoded browser title using an HTML entity; sidebar renames preserve the latest saved body instead of hydrating stale cached blocks. Fonts, tokens and UI conventions from X-001 are retained.
-- npm 11 pruned optional @emnapi peers; npm 12.2.2 regenerates the lock with zero existing package entries removed. Final lock is based on latest canonical main; verified zero existing package entries removed. npm ci passes with the generated lock.
-- Contract v1 remains accepted. Inline database blocks are preserved, and their interactive views belong to X-003.
-
-## X-001 (merged)
-Demo login/app shell/shared API completed and merged in d7cbfc8; coordinator restored cross-platform optional lock entries in 32c466e. Root checks passed, including 12 web tests and 2 real-API browser tests.
+## X-004
+- Implemented streamed chat, tool-call cards, individual undo, Undo all, Stop, profile switching/default, conversation history and current-page/selection context.
+- Agent actions invalidate page/row/database queries; dirty editor drafts are retained and refreshed after saving.
+- Inline /ai and block AI action provide write/continue/summarize/rewrite/shorter/longer/grammar/custom previews with Accept/Discard. Accepted output uses labeled, undoable normal block ops.
+- Missing server key shows the requested .env notice. No key is handled by browser code.
+- Based on canonical main e7d0f41, independent of deferred X-003, following the user's explicit agent-only priority.
+- No tests, type checks, lint, build, browser checks or real Anthropic API calls were run for this change, at the user's request. Coordinator review remains necessary; development/test runs must use AGENT_FAKE=1.
+- X-003 is preserved separately on fork branch codex/x-003-databases-calendar and is not part of this agent branch.

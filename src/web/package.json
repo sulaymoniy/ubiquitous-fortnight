@@ -7,7 +7,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint . ../../tests/web ../../tests/e2e",
+    "lint": "cd ../.. && eslint --config src/web/eslint.config.js src/web tests/web tests/e2e",
     "test": "vitest run --config vitest.config.ts",
     "e2e": "playwright test --config ../../tests/e2e/playwright.config.ts"
   },
@@ -15,24 +15,27 @@
     "@tanstack/react-query": "5.80.7",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "zustand": "5.0.5"
+    "zustand": "5.0.5",
+    "@fontsource/inter": "5.3.0",
+    "lucide-react": "1.72.0"
   },
   "devDependencies": {
-    "@eslint/js": "9.28.0",
-    "@playwright/test": "1.52.0",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.65.0",
     "@testing-library/jest-dom": "6.6.3",
     "@testing-library/react": "16.3.0",
     "@testing-library/user-event": "14.6.1",
     "@types/node": "22.15.30",
     "@types/react": "19.1.6",
     "@types/react-dom": "19.1.6",
-    "@vitejs/plugin-react": "4.5.1",
-    "eslint": "9.28.0",
+    "@vitejs/plugin-react": "6.3.0",
+    "eslint": "10.14.0",
     "globals": "16.2.0",
     "jsdom": "26.1.0",
-    "typescript": "5.8.3",
-    "typescript-eslint": "8.33.1",
-    "vite": "6.3.5",
-    "vitest": "3.2.4"
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2",
+    "vite": "8.3.8",
+    "vitest": "5.1.0",
+    "prettier": "3.9.10"
   }
 }

@@ -1,11 +1,12 @@
 ## Status
+
 - task: X-001
 - revision: 1
 - state: working
 - branch: codex/x-001-m0-web
-- commit: -
-- updated: 2026-11-11T11:47:15Z
-- note: Demo login, responsive app shell, typed API client, web tests and browser test setup implemented; validating locally while C-001 shared contract is pending.
+- commit: ff2bfdbe8062c9f2c5c86fe352116ac3f8654186
+- updated: 2026-11-11T12:03:40Z
+- note: UI standard applied; 6 web tests, frontend typecheck and lint pass under Node 22; desktop/tablet visual checks pass with mocked API. Awaiting C-001 on main for shared imports and real API/e2e validation.
 
 # X-001: M0 web scaffold
 
@@ -13,7 +14,7 @@
 - Decisions: warm neutral/olive UI; demo login clearly labeled, no fake pages or active AI controls; mobile navigation and toggleable right panel. TanStack Query owns sessions/health; Zustand owns shell toggles.
 - Network failures have retry UI; 401 clears the displayed session. API requests use same-origin cookies. Shared types are marked TEMP(contract) until C-001 merges.
 - E2E starts server and Vite itself in fake-agent mode; browser results are under ignored node_modules/.cache. Actual E2E and root checks await C-001.
-- Environment: installed Node is 23.9.0, not the planned Node 22; will record validation accurately.
+- Environment: system Node is 23.9.0. Validation now uses cached Node 22.23.4 and npm 11.6.2 explicitly; tooling matches C-001 (Vite 8.3.8, Vitest 5.1.0, TS 6.0.3, ESLint 10.14.0).
 
 # Codex task
 
@@ -46,6 +47,7 @@ Library references reviewed: https://tiptap.dev/docs/editor/extensions/custom-ex
 ## Schema details to make explicit during M0
 
 These are implementation precision items within the accepted design, not a new feature scope or a reason to block scaffolding:
+
 - Define MockUser and all request/response schemas, including the row-body ops response (a row must not be parsed as a sidebar Page), deleted/touched block handling, and error details for conflicts.
 - Make date range boundaries, all-day end semantics, workspace time zone/DST recurrence behavior, and occurrence identity explicit before the calendar milestone. Keep the accepted whole-series editing behavior.
 - Health/session exceptions must still allow login/logout and return 401 for protected routes. The mock login is imitation only and the UI should describe it accurately.
@@ -59,3 +61,11 @@ These are implementation precision items within the accepted design, not a new f
 - Implementation follows the milestone checks in the plan. No paid model evaluation is authorized by this documentation update.
 - Reviewed the full 422-line plan and both task records; checked whitespace and confirmed only AGENTS.md and this Codex-owned record changed. No runtime tests are applicable to this docs-only approval.
 
+## X-001 progress: UI standard and validation
+
+- Bundled Inter via @fontsource/inter (no font CDN), Lucide icons, and shared tokens in src/web/src/styles/tokens.css. Centered demo-login card; neutral/olive palette; AA text contrast, skeletons, focus states, Escape dismissal, and tablet sidebar collapse.
+- Fixed logout cache observer handling after a regression test exposed a stale authenticated shell.
+- Passed frontend typecheck, lint, 6 session tests, and the pre-token-refresh build. Final build will be rerun with the final package versions.
+- Browser check with mock API: screenshots inspected for desktop login and shell and 768px tablet; no horizontal overflow at 1440, 1024, 768, 390px; no page errors. This is visual smoke verification, not the real-backend e2e acceptance check.
+- Temporary standalone dependency aliases/configuration will be removed after C-001 workspace installation. API contract types remain TEMP(contract); ready_for_review is gated on shared schemas and full root/e2e checks.
+- A standalone install with old npm 11.2.0 failed resolving updated peers; npm 11.6.2 installed the matched toolchain successfully without bypassing peer constraints. Audit now reports only moderate dev-tool advisories (same tooling family noted by C-001); no critical advisories remain in the isolated web install.

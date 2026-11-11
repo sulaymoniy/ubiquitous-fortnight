@@ -2,6 +2,20 @@
 
 Tasks in order. Each task's acceptance checks are the matching milestone rows in `plan.md` section 5, plus anything listed here. Builders act only on the task their inbox assigns; this list shows what comes next so designs can anticipate it.
 
+## UI/UX standard (user request; applies to every X- task)
+
+The user wants a cool, clean interface. Every frontend task is reviewed against this, in addition to its tests:
+- **Calm and minimal, like a modern Notion/Linear**: lots of whitespace, content first, chrome that fades until hovered. No clutter, no default-browser look.
+- **Design tokens**: CSS variables for color, spacing (4px scale), radius, shadow, font sizes and motion, defined once in `src/web/src/styles/tokens.css` and used everywhere. A neutral palette with one accent color. Light theme now; structure the tokens so dark mode is a token swap later.
+- **Typography**: one good UI font (for example Inter via `@fontsource`, bundled, no external CDN), clear hierarchy, comfortable line length (about 720px max for page content), monospace for code blocks.
+- **Interaction polish**: hover and focus states on everything clickable, visible keyboard focus rings, 120–200ms ease transitions, skeleton loaders instead of spinners where content is loading, optimistic updates, toast messages for errors and undo ("Page moved · Undo").
+- **Icons**: one consistent icon set (for example `lucide-react`). Emoji page icons are fine.
+- **Empty states and errors**: every list or view has a friendly empty state with a primary action; errors say what happened and what to do.
+- **Keyboard first**: Ctrl/Cmd+K search, "/" menu, Esc closes overlays, arrow-key navigation in menus.
+- **Responsive**: works from 1440px down to a 768px tablet; the sidebar collapses. Full mobile comes later.
+- **Accessibility**: semantic HTML, labels on inputs and icon buttons, WCAG AA contrast.
+- **Login screen**: a centered card with the app name and a short tagline, saying clearly that it is a demo login (any name works).
+
 `C-` = backend builder (claude). `X-` = frontend builder (codex). "Needs" = what must be merged on `main` before the task can be marked `ready_for_review` (work may start earlier against the contract and mocks).
 
 ## C-001: M0 backend scaffold and contract v1

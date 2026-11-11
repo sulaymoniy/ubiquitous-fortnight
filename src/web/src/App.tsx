@@ -12,11 +12,16 @@ import {
   CircleCheck,
   WifiOff,
   RefreshCw,
-  FileText,
+  Plus,
 } from 'lucide-react';
 import { api, ApiError, unauthorizedEvent } from './api/client';
 import type { MockUser, SessionResponse } from '@fortnight/shared';
 import { useShell } from './store';
+import { WorkspaceProvider, useWorkspace } from './workspace/WorkspaceProvider';
+import { WorkspaceSidebar } from './workspace/WorkspaceSidebar';
+import { SearchPalette } from './workspace/SearchPalette';
+import { WorkspacePage } from './editor/PageEditor';
+import { clearSessions, flushSessions } from './editor/session';
 
 function Mark() {
   return (
@@ -108,6 +113,7 @@ function Login() {
 }
 function Shell({ user }: { user: MockUser }) {
   const client = useQueryClient();
+  const workspace = useWorkspace();
   const { assistantOpen, sidebarOpen, toggleAssistant, toggleSidebar } = useShell();
   const health = useQuery({
     queryKey: ['health'],
@@ -115,7 +121,12 @@ function Shell({ user }: { user: MockUser }) {
     refetchInterval: 30000,
   });
   const logout = useMutation({
-    mutationFn: api.logout,
+    mutationFn: async () => {
+      await flushSessions();
+      const result = await api.logout();
+      clearSessions();
+      return result;
+    },
     onSuccess: () => {
       client.setQueryData(['session'], null);
       client.removeQueries({
@@ -150,24 +161,18 @@ function Shell({ user }: { user: MockUser }) {
         <nav aria-label="Main">
           <a
             href="#workspace"
-            className="nav-item active"
-            aria-current="page"
-            onClick={() => useShell.setState({ sidebarOpen: false })}
+            className={'nav-item' + (!workspace.selected ? ' active' : '')}
+            aria-current={!workspace.selected ? 'page' : undefined}
+            onClick={(event) => {
+              event.preventDefault();
+              void workspace.navigate(null);
+            }}
           >
             <Home size={17} aria-hidden="true" />
             Workspace
           </a>
         </nav>
-        <div className="sidebar-section">
-          <span className="eyebrow">YOUR SPACE</span>
-          <FileText size={22} aria-hidden="true" />
-          <small>Pages will live here.</small>
-          <p>
-            Your notes and plans,
-            <br />
-            all within reach.
-          </p>
-        </div>
+        <WorkspaceSidebar />
         <div className="sidebar-bottom">
           <div className="user-profile">
             <span className="avatar" data-color={user.color}>
@@ -202,7 +207,9 @@ function Shell({ user }: { user: MockUser }) {
             </button>
             <span>My workspace</span>
             <span className="slash">/</span>
-            <strong>Home</strong>
+            <strong>
+              {workspace.pages.find((page) => page.id === workspace.selected)?.title || 'Home'}
+            </strong>
           </div>
           <button
             className={'assistant-toggle' + (assistantOpen ? ' selected' : '')}
@@ -216,67 +223,77 @@ function Shell({ user }: { user: MockUser }) {
         </header>
         <div className="workspace-columns">
           <main id="workspace" className="workspace-main" tabIndex={-1}>
-            <div className="page-content">
-              <div className="page-heading">
-                <span className="eyebrow">YOUR WORKSPACE, AT A GLANCE</span>
-                <span className="home-icon">
-                  <Home size={36} strokeWidth={1.3} aria-hidden="true" />
-                </span>
-                <h1>A fresh beginning.</h1>
-                <p>
-                  Welcome, {user.name}.<br />A little space to collect what matters.
-                </p>
-              </div>
-              <section className="welcome-note" aria-labelledby="welcome-heading">
-                <ArrowUpRight size={24} aria-hidden="true" />
-                <div>
-                  <h2 id="welcome-heading">Good things start with a blank page.</h2>
+            {workspace.selected ? (
+              <WorkspacePage />
+            ) : (
+              <div className="page-content">
+                <div className="page-heading">
+                  <span className="eyebrow">YOUR WORKSPACE, AT A GLANCE</span>
+                  <span className="home-icon">
+                    <Home size={36} strokeWidth={1.3} aria-hidden="true" />
+                  </span>
+                  <h1>A fresh beginning.</h1>
                   <p>
-                    Your workspace is taking shape. Soon, your notes, projects, and calendar will
-                    feel right at home here.
+                    Welcome, {user.name}.<br />A little space to collect what matters.
                   </p>
                 </div>
-              </section>
-              <section className="foundation" aria-label="Workspace status">
-                <div>
-                  <span className="eyebrow">THE FOUNDATION</span>
-                  <h2>A quiet place to build.</h2>
-                </div>
-                <div className="health-card">
-                  <div className="health-title">
-                    {health.isSuccess ? (
-                      <CircleCheck size={15} aria-hidden="true" />
-                    ) : health.isError ? (
-                      <WifiOff size={15} aria-hidden="true" />
-                    ) : (
-                      <span className="skeleton skeleton-icon" />
-                    )}
-                    <strong role="status">
-                      {health.isPending
-                        ? 'Connecting to workspace…'
-                        : health.isError
-                          ? 'Workspace API unavailable'
-                          : 'Workspace API connected'}
-                    </strong>
+                <button className="primary home-create" onClick={() => void workspace.createPage()}>
+                  Create a page
+                  <Plus size={16} aria-hidden="true" />
+                </button>
+                <section className="welcome-note" aria-labelledby="welcome-heading">
+                  <ArrowUpRight size={24} aria-hidden="true" />
+                  <div>
+                    <h2 id="welcome-heading">Good things start with a blank page.</h2>
+                    <p>
+                      Your workspace is taking shape. Soon, your notes, projects, and calendar will
+                      feel right at home here.
+                    </p>
                   </div>
-                  <p>
-                    {health.data
-                      ? 'Contract ' + health.data.contractVersion + ' · Ready for what comes next.'
-                      : 'Your connection to the workspace service.'}
-                  </p>
-                  {health.isError && (
-                    <button className="text-button" onClick={() => void health.refetch()}>
-                      <RefreshCw size={13} aria-hidden="true" />
-                      Try again
-                    </button>
-                  )}
-                </div>
-              </section>
-              <footer className="workspace-footer">
-                <span>Built for the way your mind wanders.</span>
-                <Sparkles size={20} aria-hidden="true" />
-              </footer>
-            </div>
+                </section>
+                <section className="foundation" aria-label="Workspace status">
+                  <div>
+                    <span className="eyebrow">THE FOUNDATION</span>
+                    <h2>A quiet place to build.</h2>
+                  </div>
+                  <div className="health-card">
+                    <div className="health-title">
+                      {health.isSuccess ? (
+                        <CircleCheck size={15} aria-hidden="true" />
+                      ) : health.isError ? (
+                        <WifiOff size={15} aria-hidden="true" />
+                      ) : (
+                        <span className="skeleton skeleton-icon" />
+                      )}
+                      <strong role="status">
+                        {health.isPending
+                          ? 'Connecting to workspace…'
+                          : health.isError
+                            ? 'Workspace API unavailable'
+                            : 'Workspace API connected'}
+                      </strong>
+                    </div>
+                    <p>
+                      {health.data
+                        ? 'Contract ' +
+                          health.data.contractVersion +
+                          ' · Ready for what comes next.'
+                        : 'Your connection to the workspace service.'}
+                    </p>
+                    {health.isError && (
+                      <button className="text-button" onClick={() => void health.refetch()}>
+                        <RefreshCw size={13} aria-hidden="true" />
+                        Try again
+                      </button>
+                    )}
+                  </div>
+                </section>
+                <footer className="workspace-footer">
+                  <span>Built for the way your mind wanders.</span>
+                  <Sparkles size={20} aria-hidden="true" />
+                </footer>
+              </div>
+            )}
           </main>
           {assistantOpen && (
             <aside id="assistant-panel" className="assistant-panel" aria-label="Assistant">
@@ -313,6 +330,7 @@ function Shell({ user }: { user: MockUser }) {
           )}
         </div>
       </div>
+      <SearchPalette />
     </div>
   );
 }
@@ -364,5 +382,11 @@ export function App() {
         </button>
       </main>
     );
-  return session.data ? <Shell user={session.data.user} /> : <Login />;
+  return session.data ? (
+    <WorkspaceProvider>
+      <Shell user={session.data.user} />
+    </WorkspaceProvider>
+  ) : (
+    <Login />
+  );
 }

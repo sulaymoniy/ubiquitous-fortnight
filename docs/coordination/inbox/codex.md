@@ -3,12 +3,12 @@
 Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 
 ## Current task
-- task: X-002
+- task: X-003
 - revision: 1
 - state: assigned
-- branch: codex/x-002-editor
-- base: main (X-001 merged as `d7cbfc8`, lockfile fix `32c466e`)
-- spec: `backlog.md` → X-002, acceptance: `plan.md` section 5, M1.2 and M1.3
+- branch: codex/x-003-databases-calendar
+- base: main (X-002 merged)
+- spec: `backlog.md` → X-003 (M2.2 + M3.2: table, board, list, gallery views, filters/sorts, and FullCalendar month/week/day with drag to reschedule), feature-first mode. The backend (C-003) is already on `main`.
 
 ## Notes from the coordinator
 - **C-003 (databases, views, query, calendar API with recurrence) is merged on `main`.** After X-002, X-003 can use the real API right away.
@@ -29,3 +29,4 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 - 2026-11-11: UI/UX standard added at the user's request.
 - 2026-11-11: C-001 merged into `main`; X-001 can now be finished and reviewed.
 - 2026-11-11: X-001 reviewed and merged into `main` (`d7cbfc8`); lockfile regenerated on Windows (`32c466e`). X-002 assigned.
+- 2026-11-11: X-002 merged (clean install, typecheck, lint, 376 tests). X-003 assigned.

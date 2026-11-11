@@ -1,5 +1,6 @@
 import cookie from '@fastify/cookie';
-import { SESSION_COOKIE, type MockUser } from '@fortnight/shared';
+import multipart from '@fastify/multipart';
+import { MAX_UPLOAD_BYTES, SESSION_COOKIE, type MockUser } from '@fortnight/shared';
 import Fastify, { type FastifyServerOptions } from 'fastify';
 import {
   serializerCompiler,
@@ -10,7 +11,10 @@ import type { ServerConfig } from './config.ts';
 import type { AppDatabase } from './db/client.ts';
 import { errorBody, errorHandler, notFoundHandler } from './http/errors.ts';
 import { healthRoutes } from './routes/health.ts';
+import { pageRoutes } from './routes/pages.ts';
+import { searchAndChangesetRoutes } from './routes/search-changesets.ts';
 import { sessionRoutes } from './routes/session.ts';
+import { uploadRoutes } from './routes/uploads.ts';
 import { SessionStore } from './session.ts';
 
 declare module 'fastify' {
@@ -56,16 +60,18 @@ export async function buildApp(options: BuildAppOptions) {
   app.setErrorHandler(errorHandler);
   app.setNotFoundHandler(notFoundHandler);
   app.decorateRequest('user', null);
-  // The API speaks JSON only (uploads add multipart in C-002); anything else is 415.
+  // The API speaks JSON, plus multipart for POST /api/uploads; anything else is 415.
   app.removeContentTypeParser('text/plain');
 
   await app.register(cookie);
+  await app.register(multipart, { limits: { fileSize: MAX_UPLOAD_BYTES, files: 1, fields: 5 } });
 
-  // 401 guard: every /api route except health and session needs a valid session cookie.
-  // Runs before routing, so unknown /api paths also answer 401 without a session.
+  // 401 guard: every /api route except health and session, and /uploads, need a valid session
+  // cookie. Runs before routing, so unknown /api paths also answer 401 without a session.
   app.addHook('onRequest', async (request, reply) => {
     const path = request.url.split('?')[0] ?? '';
-    if (path !== '/api' && !path.startsWith('/api/')) return;
+    const guarded = path === '/api' || path.startsWith('/api/') || path.startsWith('/uploads/');
+    if (!guarded) return;
     const user = ctx.sessions.get(request.cookies[SESSION_COOKIE]);
     if (user) request.user = user;
     if (isPublicApiRoute(request.method, path)) return;
@@ -76,6 +82,9 @@ export async function buildApp(options: BuildAppOptions) {
 
   await app.register(healthRoutes(ctx), { prefix: '/api' });
   await app.register(sessionRoutes(ctx), { prefix: '/api' });
+  await app.register(pageRoutes(ctx), { prefix: '/api' });
+  await app.register(searchAndChangesetRoutes(ctx), { prefix: '/api' });
+  await app.register(uploadRoutes(ctx));
 
   return app;
 }

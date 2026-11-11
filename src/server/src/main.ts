@@ -3,6 +3,7 @@ import { loadEnv, readConfig } from './config.ts';
 import { openDatabase, runMigrations } from './db/client.ts';
 import { workspace } from './db/schema.ts';
 import { seedDatabase } from './db/seed.ts';
+import { ensureSearchIndex } from './services/search.ts';
 
 loadEnv();
 const config = readConfig();
@@ -13,6 +14,8 @@ runMigrations(db);
 if (db.select({ id: workspace.id }).from(workspace).limit(1).all().length === 0) {
   seedDatabase(db, { timeZone: config.seedTimeZone, uploadsDir: config.uploadsDir });
 }
+
+ensureSearchIndex(db);
 
 const app = await buildApp({ db, config, logger: { level: config.logLevel } });
 

@@ -7,6 +7,7 @@ import {
   type RichText,
   type ViewConfig,
 } from '@fortnight/shared';
+import { rebuildSearchIndex } from '../services/search.ts';
 import type { AppDatabase } from './client.ts';
 import * as t from './schema.ts';
 
@@ -402,6 +403,9 @@ export function seedDatabase(db: AppDatabase, options: SeedOptions): SeedResult 
       .values({ key: 'defaultAgentProfileId', value: 'sonnet-full' })
       .onConflictDoNothing()
       .run();
+
+    // Derived data: rebuilt from scratch, so it is identical on every run.
+    rebuildSearchIndex(db); // same connection, inside this transaction
 
     return { createdWorkspace: created.changes > 0 };
   });

@@ -5,3 +5,14 @@ export * as schema from './db/schema.ts';
 export { SEED_IDS, seedDatabase, type SeedOptions, type SeedResult } from './db/seed.ts';
 export { AppError } from './http/errors.ts';
 export { mockUserFromName, SessionStore } from './session.ts';
+export {
+  blocksToMarkdown,
+  blocksToTree,
+  markdownToNodes,
+  markdownToRich,
+  nodesToMarkdown,
+  normalizeRich,
+  richToMarkdown,
+  type BlockNode,
+  type IdBlockNode,
+} from './markdown/markdown.ts';

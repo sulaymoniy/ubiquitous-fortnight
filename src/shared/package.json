@@ -1,0 +1,18 @@
+{
+  "name": "@fortnight/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fortnight API contract: Zod schemas and inferred types shared by server and web.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint . && prettier --check --ignore-path ../../.prettierignore ."
+  },
+  "dependencies": {
+    "fractional-indexing": "4.0.0",
+    "zod": "4.6.7"
+  }
+}

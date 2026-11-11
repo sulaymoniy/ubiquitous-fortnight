@@ -5,6 +5,11 @@ const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
 );
+const dataDir = path.join(
+  root,
+  "src/web/node_modules/.cache/e2e-data",
+  String(Date.now()),
+);
 export default defineConfig({
   testDir: ".",
   testMatch: "*.spec.ts",
@@ -13,21 +18,30 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: "list",
   outputDir: path.join(root, "src/web/node_modules/.cache/playwright-results"),
-  use: { baseURL: "http://127.0.0.1:5173", trace: "retain-on-failure" },
+  use: { baseURL: "http://127.0.0.1:5174", trace: "retain-on-failure" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: [
     {
       command: "npm run dev --workspace @fortnight/server",
       cwd: root,
-      url: "http://127.0.0.1:3001/api/health",
-      reuseExistingServer: !process.env.CI,
-      env: { AGENT_FAKE: "1", ANTHROPIC_API_KEY: "" },
+      url: "http://127.0.0.1:3101/api/health",
+      reuseExistingServer: false,
+      env: {
+        HOST: "127.0.0.1",
+        PORT: "3101",
+        DATA_DIR: dataDir,
+        DB_FILE: path.join(dataDir, "fortnight.db"),
+        LOG_LEVEL: "silent",
+        AGENT_FAKE: "1",
+        ANTHROPIC_API_KEY: "",
+      },
     },
     {
-      command: "npm run dev --workspace @fortnight/web",
+      command: "npm run dev --workspace @fortnight/web -- --port 5174",
       cwd: root,
-      url: "http://127.0.0.1:5173",
-      reuseExistingServer: !process.env.CI,
+      url: "http://127.0.0.1:5174",
+      reuseExistingServer: false,
+      env: { FORTNIGHT_API_TARGET: "http://127.0.0.1:3101" },
     },
   ],
 });

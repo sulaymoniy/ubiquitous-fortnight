@@ -76,3 +76,8 @@ These are implementation precision items within the accepted design, not a new f
 - Health/session/login/logout now use the shared request/response schemas with runtime parsing; no duplicate wire types remain. Malformed success responses, network failures, cancellation, API error details and session-expiry events are covered by client tests.
 - Early validation uses an untracked read-only snapshot of the published C-001 shared package under src/web/node_modules/.cache; no src/shared or root files changed. This snapshot is temporary and will be replaced by the real workspace link after C-001 merges. Root clean-install and real API/e2e checks still gate ready_for_review.
 - Contract requests: none for X-001. Accept the schema's 80-character name and 200-character password limits; the form matches them. The API's named avatar color is retained as data while the M0 shell uses the neutral theme accent.
+
+### Browser test isolation
+
+- Playwright starts its own API on 3101 and web on 5174, with reuse disabled and a unique ignored data directory per run. The real API key is explicitly blank and fake-agent mode is enabled. The normal 3001/5173 development defaults are unchanged. This prevents the browser suite from reusing a coordinator/user server or its data.
+- The Vite proxy accepts FORTNIGHT_API_TARGET only as server-side development configuration; it is not exposed in client code.

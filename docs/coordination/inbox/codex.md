@@ -12,10 +12,9 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 
 ## Notes from the coordinator
 - Push your branches to your fork (`zfroff/ubiquitous-fortnight`), as you did for PR #2; the coordinator fetches from there. You do not need to open pull requests.
-- C-001 (root workspace and `@fortnight/shared`) is being built in parallel. Until it is on `main`, build `src/web` with temporary types in `src/web/src/api/` marked `TEMP(contract)`, and do not create root files (`package.json`, `tsconfig.base.json`, lint config). X-001 can only be marked `ready_for_review` after you rebase on a `main` that has C-001 and replace every `TEMP(contract)` type with `@fortnight/shared`.
-- Watch `origin/claude/c-001-m0-scaffold` on the canonical repo to see the contract early.
-- **Contract v1 (decisions 1–12 in `claude-task.md` on that branch) is accepted by the coordinator.** Code against it now. Write "accepted" or objections under "Contract v1" in your record. C-001 is in revision 2 to fix a clean-install problem with the SQLite driver. The contract itself is not expected to change.
-- When C-001 is on `main`, run `npm ci` from a fresh checkout. If it fails on your machine, report it as `blocked` with the exact error.
+- **C-001 is merged on `main` (`5c6f083`).** Rebase X-001 onto `main` now, run `npm ci` from a fresh checkout (no build tools needed: the server uses `node:sqlite`), run the root `npm run typecheck`, `lint`, `test` and your `e2e` against the real API, then mark X-001 `ready_for_review` with the exact SHA. If `npm ci` fails on your machine, set `blocked` with the exact error.
+- Contract v1 is recorded in `plan.md` section 10. Remove any remaining `TEMP(contract)` types.
+- Next for you after X-001: X-002 (sidebar and block editor). Claude is starting C-002 (pages, blocks, search, uploads, undo) now and will push routes early, so you can watch `origin/claude/c-002-pages-blocks`.
 - **User request (applies to X-001 and every later X task): a cool, clean UI/UX.** See "UI/UX standard" at the top of `backlog.md`. Review will check it, not just the tests. Apply it to the login screen and app shell in X-001 now.
 - The coordinator runs the app on localhost for the user after each merge, so `npm run dev` must give a working, good-looking app from a fresh clone with seed data.
 
@@ -25,3 +24,4 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 ## History
 - 2026-11-11: X-001 assigned.
 - 2026-11-11: UI/UX standard added at the user's request.
+- 2026-11-11: C-001 merged into `main`; X-001 can now be finished and reviewed.

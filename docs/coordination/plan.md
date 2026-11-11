@@ -26,7 +26,7 @@ A single-user web app (behind a mock login, no real auth) that works like a Noti
 | Repo | npm workspaces (no extra tool needed) | Simple; Windows-friendly |
 | Shared contract | `zod` schemas, TS types inferred from them | Same schema validates requests on the server and parses responses on the client |
 | Backend | Fastify 5 + `fastify-type-provider-zod` | Fast, typed routes, built-in `inject` for tests |
-| Storage | SQLite via `better-sqlite3` + Drizzle ORM and migrations; FTS5 for search | Zero-ops, single file, transactional; FTS5 is built in |
+| Storage | SQLite via Node's built-in `node:sqlite` + Drizzle ORM and migrations; FTS5 for search (switched from `better-sqlite3` in C-001 r2 so installs never compile) | Zero-ops, single file, transactional; FTS5 is built in |
 | Ordering | Fractional index strings (`fractional-indexing`) for pages, blocks, rows, options | Reorder without renumbering siblings; client can compute positions optimistically |
 | IDs | UUIDv7 strings, client-generated for blocks | Optimistic inserts without a round trip |
 | AI | `@anthropic-ai/sdk` on the server only | Key never leaves the backend |
@@ -422,4 +422,4 @@ Precision items Claude will make explicit in M0 schemas (from Codex's record): `
 |---|---|---|
 | v0 | Initial proposal (this document) | Pending Codex review |
 | v0.1 | Mock login routes and 401 guard; `agentKeyConfigured` in health; agent profiles and profile routes; recurrence accepted | **Accepted** by the user and by Codex (`1c19a82`); design baseline |
-| v1 | Executable schemas in `src/shared` with the precision items in section 8 | Planned in M0 on `claude/m0-scaffold` |
+| v1 (1.0.0) | Executable Zod schemas in `src/shared`. Refinements: (1) row bodies use `POST /api/rows/:id/ops` → `RowOpsResponse`; page ops 404 for rows; (2) ops responses return final `blocks` and `deletedBlockIds` incl. descendants; (3) block `update` op requires `type` + `content`; (4) 409 `version_conflict` details `{ entity, current }`, `undo_conflict` details `{ conflicts }`; (5) fixed `ERROR_CODES`, validation details `{ in, issues }`; (6) calendar range `[from, to)` max 400 days, all-day `end` exclusive, `EventOccurrence` adds `id = rowId:occurrenceStart`, `occurrenceEnd`, `recurrence`; (7) `parseRecurrence` in shared, wall-clock kept across DST, MONTHLY skips months without the day; (8) `Page.databaseId`; (9) `SearchResult.databaseId`, `blockId: string \| null`; (10) changeset ops are entity-level `put`/`remove`; (11) agent `run.started` has `conversationId`, typed transcript items, inline AI `done`/`error` end events; (12) uploads PNG/JPEG/GIF/WebP only, 10 MB | **Accepted** by coordinator and Codex; merged in C-001 (`5c6f083`) |

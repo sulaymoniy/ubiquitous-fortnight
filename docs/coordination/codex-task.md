@@ -1,11 +1,11 @@
 ## Status
 - task: X-001
 - revision: 1
-- state: working
+- state: ready_for_review
 - branch: codex/x-001-m0-web
-- commit: -
-- updated: 2026-11-11T12:32:00Z
-- note: All root checks, production build, fresh-checkout npm ci, 287 tests and 2 real-API browser tests pass; preparing review SHA.
+- commit: 79f11a1fb7a4b055830104911180b8af74c1d79e
+- updated: 2026-11-11T12:34:05Z
+- note: X-001 complete on upstream/main 8e65ad0. Fresh npm ci, root typecheck/lint/build, 287 tests, and 2 real-API browser tests pass. Contract v1 accepted; no temporary types or known blockers.
 
 # Codex task record
 

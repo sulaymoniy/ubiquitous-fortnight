@@ -1,6 +1,6 @@
 import { createReadStream, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { ALLOWED_UPLOAD_TYPES, MAX_UPLOAD_BYTES, UploadResponse } from '@fortnight/shared';
+import { MAX_UPLOAD_BYTES, UploadResponse, type ALLOWED_UPLOAD_TYPES } from '@fortnight/shared';
 import { eq } from 'drizzle-orm';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';

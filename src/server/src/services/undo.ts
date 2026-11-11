@@ -5,14 +5,20 @@ import { changesets, pages } from '../db/schema.ts';
 import { AppError } from '../http/errors.ts';
 import { nowIso } from '../ids.ts';
 import { ChangeRecorder, inTransaction } from '../store/changes.ts';
-import { getStored, putStored, removeStored, sameStored } from '../store/entities.ts';
+import {
+  getStored,
+  putStored,
+  removeStored,
+  sameStored,
+  type StoredRow,
+} from '../store/entities.ts';
 import { reindexPages } from './search.ts';
 
 /**
  * Undoes changesets by applying their `inverse` ops.
  *
  * - Conflict check: every entity the changeset touched must still be exactly in the state the
- *   changeset left it in. Otherwise 409 `undo_conflict` lists the entities and nothing changes.
+ *   changeset left it in (ignoring `version`, see below). Otherwise 409 `undo_conflict` lists the entities and nothing changes.
  * - The prior stored state is restored exactly, with one exception: a page's or row's `version`
  *   keeps counting up (after + 1) so clients holding the newer version still get a 409.
  * - Undo writes its own changeset (source `user`, label `Undo: <label>`), so undo can be undone.
@@ -35,7 +41,7 @@ export function undoChangesets(db: AppDatabase, ids: string[], label?: string): 
     const pageIds = new Set<string>();
     for (const cs of sets) {
       const conflicts = cs.ops
-        .filter((op) => !sameStored(getStored(db, op.entity, op.id), expectedAfter(op)))
+        .filter((op) => !sameIgnoringVersion(getStored(db, op.entity, op.id), expectedAfter(op)))
         .map((op) => ({ entity: op.entity, id: op.id }));
       if (conflicts.length > 0) {
         throw new AppError(409, 'undo_conflict', 'Some items changed since then', { conflicts });
@@ -70,6 +76,15 @@ export function undoChangesets(db: AppDatabase, ids: string[], label?: string): 
       label: label ?? (sets.length === 1 && first ? `Undo: ${first.label}` : 'Undo'),
     });
   });
+}
+
+/**
+ * Undo bumps `version` instead of restoring it, so the conflict check ignores `version`. Any real
+ * later edit also changes `updatedAt` (or content), so it is still detected.
+ */
+function sameIgnoringVersion(a: StoredRow | null, b: StoredRow | null): boolean {
+  const strip = (r: StoredRow | null) => (r && 'version' in r ? { ...r, version: 0 } : r);
+  return sameStored(strip(a), strip(b));
 }
 
 function expectedAfter(op: ChangeOp) {

@@ -6,8 +6,8 @@
 - state: working
 - branch: claude/c-002-pages-blocks
 - commit: -
-- updated: 2026-11-11T17:30:59+05:00
-- note: Work in progress. Routes working and pushed for Codex: workspace GET/PATCH, pages list/create/get/patch/archive/restore, page ops, search, uploads (+ GET /uploads/:id), changesets list and undo. Still to do: Markdown converter, remaining M1.1 tests (ops, search, uploads, undo, 1,000 inserts).
+- updated: 2026-11-11T17:32:57+05:00
+- note: Work in progress. Routes done with M1.1 tests for pages, ops, undo, search and uploads (311 tests pass). Left: Markdown <-> blocks converter and its round-trip tests.
 
 ## Role and ownership (accepted by the user and Codex)
 

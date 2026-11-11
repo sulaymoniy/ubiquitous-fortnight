@@ -3,11 +3,11 @@
 ## Status
 - task: C-003
 - revision: 1
-- state: working
+- state: ready_for_review
 - branch: claude/c-003-databases-calendar
-- commit: -
-- updated: 2026-11-11T17:54:12+05:00
-- note: All C-003 routes work and are pushed for Codex (databases, properties, rows incl. row body ops, views, query with filters/sorts, calendar events with recurrence). Adding core-logic tests (filters, recurrence/DST), then ready.
+- commit: head of the branch (this status is in the same commit as the tests, per efficiency mode; WIP routes were `6dc0e4d`)
+- updated: 2026-11-11T17:56:45+05:00
+- note: C-003 done: databases, properties, rows (+ row bodies), views, query (all filter ops, sorts, cursor), calendar events with recurrence. typecheck, lint, format pass; server 345 + web 12 tests pass. No dependency changes.
 
 ## Role and ownership (accepted by the user and Codex)
 
@@ -15,6 +15,15 @@
 - Claude owns: root workspace config (`package.json`, `package-lock.json` changes for its packages, `tsconfig.base.json`, `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, `.gitattributes`, `scripts/`, `.env.example`), `src/shared/**` (contract keeper), `src/server/**`, `tests/server/**`, `tests/contract/**`, this record.
 - Codex owns: `src/web/**`, `tests/web/**`, `tests/e2e/**`, `docs/coordination/codex-task.md`, `AGENTS.md`.
 - Coordinator owns: `PROTOCOL.md`, `backlog.md`, `plan.md`, `inbox/*`.
+
+## C-003: databases, properties, rows, views, query, calendar (M2.1 + M3.1)
+
+- Routes: `GET/POST /api/databases`, `GET/PATCH /api/databases/:id`, `POST /api/databases/:id/properties`, `PATCH/DELETE /api/properties/:id`, `POST /api/databases/:id/query`, `POST /api/databases/:id/rows`, `GET/PATCH /api/rows/:id`, `POST /api/rows/:id/{archive,restore,ops}`, `POST /api/databases/:id/views`, `PATCH/DELETE /api/views/:id`, `GET /api/calendar/events`. Every mutation writes one changeset (undoable).
+- Decisions: new rows and properties without `afterId` go last (`afterId: null` = first). Values are checked per type with messages naming the property; URLs must be http(s) or mailto. Reads drop values of deleted properties, removed select options and archived/missing relation targets. Deleting a property strips its values from rows in the same changeset. Renaming a database page renames the database (and back).
+- Query: filters and sorts run in memory over live rows (5,000 rows: well under 100 ms). Text ops are case-insensitive; date ops compare local dates in the workspace zone; `past_week` = [today-7, today], `next_week` = [today, today+7], `this_week` uses `weekStartsOn`. Empty values sort last both ways. A view's filter is ANDed with the request filter (conditions on deleted properties are dropped); request sorts replace view sorts. Cursor = opaque offset.
+- Calendar: `services/recurrence.ts` + `services/tz.ts` (Intl only). Wall-clock time kept across DST; DST gaps move forward, overlaps take the earlier instant. COUNT counts from the first occurrence; UNTIL inclusive. Each database uses its first date property.
+- Tests: `tests/server/databases.test.ts` (invalid values for every type, every filter op, and/or, sorts, cursor, views, option rename, relation drops, undo of property delete and row archive, 5,000-row timing, row bodies), `tests/server/calendar.test.ts` (DST gap/overlap, weekly across DST, COUNT, UNTIL, BYDAY+INTERVAL, MONTHLY skip, all-day overlap in UTC+5, point events, seeded range, reschedule).
+- Contract requests: none.
 
 ## C-002: M1.1 pages, blocks, ops, search, uploads, undo log
 

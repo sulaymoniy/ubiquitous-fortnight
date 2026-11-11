@@ -1,0 +1,32 @@
+{
+  "name": "@fortnight/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fortnight API server: Fastify, SQLite (better-sqlite3 + Drizzle), mock login.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/main.ts",
+    "seed": "tsx src/seed-cli.ts",
+    "db:generate": "drizzle-kit generate",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint . ../../tests/server ../../tests/contract && prettier --check --ignore-path ../../.prettierignore . ../../tests/server ../../tests/contract",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fastify/cookie": "11.1.5",
+    "@fortnight/shared": "*",
+    "better-sqlite3": "13.0.3",
+    "drizzle-orm": "0.45.4",
+    "fastify": "5.12.8",
+    "fastify-type-provider-zod": "7.0.0",
+    "uuid": "14.0.3",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "9.6.0",
+    "drizzle-kit": "0.31.11"
+  }
+}

@@ -9,7 +9,7 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "lint": "eslint . && prettier --check ."
+    "lint": "eslint . && prettier --check --ignore-path ../../.prettierignore ."
   },
   "dependencies": {
     "fractional-indexing": "4.0.0",

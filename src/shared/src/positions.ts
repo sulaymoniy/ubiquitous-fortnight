@@ -7,11 +7,17 @@ import { generateKeyBetween, generateNKeysBetween } from 'fractional-indexing';
 
 /** A position strictly between `before` and `after` (either may be null). Throws if before >= after. */
 export function positionBetween(before: string | null, after: string | null): string {
+  if (before !== null && after !== null && before >= after) {
+    throw new Error(`position ${before} must sort before ${after}`);
+  }
   return generateKeyBetween(before, after);
 }
 
 /** `n` increasing positions strictly between `before` and `after`. */
 export function positionsBetween(before: string | null, after: string | null, n: number): string[] {
+  if (before !== null && after !== null && before >= after) {
+    throw new Error(`position ${before} must sort before ${after}`);
+  }
   return generateNKeysBetween(before, after, n);
 }
 

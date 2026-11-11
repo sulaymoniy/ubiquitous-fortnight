@@ -76,23 +76,26 @@ export const BLOCK_TYPES = [
 export const BlockType = z.enum(BLOCK_TYPES);
 export type BlockType = z.infer<typeof BlockType>;
 
-export const RichContent = z.object({ rich: z.array(RichText) });
-export const ToDoContent = z.object({ rich: z.array(RichText), checked: z.boolean() });
-export const CodeContent = z.object({
+export const RichContent = z.strictObject({ rich: z.array(RichText) });
+export const ToDoContent = z.strictObject({ rich: z.array(RichText), checked: z.boolean() });
+export const CodeContent = z.strictObject({
   text: z.string().max(200_000),
   language: z.string().max(40),
 });
-export const ImageContent = z.object({
+export const ImageContent = z.strictObject({
   /** `/uploads/<id>` for uploaded files, or an absolute http(s) URL. */
   url: z.string().min(1).max(2048),
   caption: z.array(RichText),
   /** Display width in CSS pixels; null = natural width. */
   width: z.number().int().positive().max(4000).nullable(),
 });
-export const DividerContent = z.object({});
-export const DatabaseViewContent = z.object({ databaseId: Id, viewId: Id });
+export const DividerContent = z.strictObject({});
+export const DatabaseViewContent = z.strictObject({ databaseId: Id, viewId: Id });
 
 /**
+ * Content objects are strict: unknown keys are rejected, so content sent with the wrong `type`
+ * fails instead of silently losing fields. The same holds for property configs.
+ *
  * Builds the 13 `{ type, content }` variants with extra fields, so `type` and `content` always
  * agree at the schema level. Used for Block, new blocks in ops, and update ops.
  */
@@ -261,10 +264,10 @@ export const SelectOption = z.object({
 });
 export type SelectOption = z.infer<typeof SelectOption>;
 
-export const EmptyConfig = z.object({});
-export const NumberConfig = z.object({ format: z.enum(['number', 'percent', 'currency']) });
-export const SelectConfig = z.object({ options: z.array(SelectOption).max(500) });
-export const RelationConfig = z.object({ targetDatabaseId: Id });
+export const EmptyConfig = z.strictObject({});
+export const NumberConfig = z.strictObject({ format: z.enum(['number', 'percent', 'currency']) });
+export const SelectConfig = z.strictObject({ options: z.array(SelectOption).max(500) });
+export const RelationConfig = z.strictObject({ targetDatabaseId: Id });
 export const PropertyConfig = z.union([NumberConfig, SelectConfig, RelationConfig, EmptyConfig]);
 export type PropertyConfig = z.infer<typeof PropertyConfig>;
 

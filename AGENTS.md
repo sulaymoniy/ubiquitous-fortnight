@@ -5,7 +5,7 @@
 - Claude checkout: `.worktrees/claude`, branch `claude/<task-name>`.
 - Codex checkout: `.worktrees/codex`, branch `codex/<task-name>`.
 - `.worktrees/` is local and ignored. Never commit checkout contents or Git metadata.
-- Keep the existing root `index.html` entry point until an agreed application change replaces it. `src/` and `tests/` are reserved for future implementation and tests.
+- The app entry point is `src/web/index.html` (created in M0). The root `index.html` was removed by user decision D4. Implementation and tests live under `src/` and `tests/` with ownership recorded in the task files.
 
 ## Ownership and independent work
 - Work only in your assigned worktree and branch. Never change another agent's files, branch, staging, or checkout.

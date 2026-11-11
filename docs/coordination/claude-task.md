@@ -3,11 +3,11 @@
 ## Status
 - task: C-002
 - revision: 1
-- state: working
+- state: ready_for_review
 - branch: claude/c-002-pages-blocks
-- commit: -
-- updated: 2026-11-11T17:32:57+05:00
-- note: Work in progress. Routes done with M1.1 tests for pages, ops, undo, search and uploads (311 tests pass). Left: Markdown <-> blocks converter and its round-trip tests.
+- commit: 29845f042c763b09926bbeaa1e54edfe5692825e
+- updated: 2026-11-11T17:39:52+05:00
+- note: C-002 complete on top of main `8e65ad0`: workspace, pages, page ops, archive/restore, FTS5 search, uploads, changesets and undo, Markdown <-> blocks converter. 319 tests pass; clean `npm ci` in a fresh clone still compiles nothing.
 
 ## Role and ownership (accepted by the user and Codex)
 
@@ -15,6 +15,65 @@
 - Claude owns: root workspace config (`package.json`, `package-lock.json` changes for its packages, `tsconfig.base.json`, `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, `.gitattributes`, `scripts/`, `.env.example`), `src/shared/**` (contract keeper), `src/server/**`, `tests/server/**`, `tests/contract/**`, this record.
 - Codex owns: `src/web/**`, `tests/web/**`, `tests/e2e/**`, `docs/coordination/codex-task.md`, `AGENTS.md`.
 - Coordinator owns: `PROTOCOL.md`, `backlog.md`, `plan.md`, `inbox/*`.
+
+## C-002: M1.1 pages, blocks, ops, search, uploads, undo log
+
+### Routes (all behind the session guard, shapes from contract v1)
+
+- `GET /api/workspace`, `PATCH /api/workspace` (name; settings merged, e.g. only `timeZone`).
+- `GET /api/pages?includeArchived=`, `POST /api/pages`, `GET /api/pages/:id`, `PATCH /api/pages/:id`, `POST /api/pages/:id/archive`, `POST /api/pages/:id/restore`, `POST /api/pages/:id/ops`.
+- `GET /api/search?q=&limit=`.
+- `POST /api/uploads` (multipart field `file`), `GET /uploads/:id`.
+- `GET /api/changesets?limit=&source=&agentRunId=`, `POST /api/changesets/:id/undo`.
+- Not in C-002 (they belong to C-003 with the rest of rows): `GET /api/rows/:id` and `POST /api/rows/:id/ops`. The ops engine is shared, so they are thin wrappers there.
+
+### Behavior decisions (inside the contract; recorded for Codex and the coordinator)
+
+1. **Page ordering**: `POST /api/pages` without `afterId` inserts as the FIRST sibling (contract: "null or missing = first"). To append, send `afterId` = the last sibling. Moving to a new parent without `position` appends at the end.
+2. **Page version** is bumped by title/icon/cover/parent/position changes, archive and restore. Block ops do not bump it (blocks are last-writer-wins); they update `page.updatedAt`, and the ops response returns the current page.
+3. **Archive** sets the same `archivedAt` on the page and every not-yet-archived descendant; **restore** clears exactly that set, so a child archived earlier stays archived. Restoring a page whose parent is still archived (or gone) moves it to the top level, at the end. Archiving an archived page or restoring a live one is a no-op 200. Database pages are archived with their parent; database rows are not pages and are not touched.
+4. **Ops validation** stops at the first bad op with 400 `validation_error`, `details.issues[0].path` like `['ops', 3, 'block', 'parentId']`. Checks: unknown block on this page, parent not on this page, id already used (on any page), move under itself or a descendant, invalid fractional position (e.g. `a00`), type/content mismatch (schema). Ops on a row id or unknown page are 404.
+5. **Undo**: the conflict check compares every touched entity with the state the changeset left (ignoring page/row `version`); on conflict 409 with `{ conflicts }` and nothing changes. Undo restores the exact prior stored rows, except page/row `version`, which keeps counting up so clients with the old version get a 409. Undo writes its own changeset (`Undo: <label>`), so undoing an undo is a redo. Undoing twice is 409 `undo_conflict` with `conflicts: []`. Every mutation in C-002 writes exactly one changeset; uploads write none (files are not workspace state).
+6. **Search** (FTS5 confirmed in Node 22.23's `node:sqlite`, SQLite 3.53.4): migration `0002` replaces the C-001 table with one row per title and one per block. Every word must match (prefix match, so results appear while typing); accents and case are ignored (`Café` matches `cafe`); FTS syntax in the query is neutralized. Title matches rank first, then bm25 with title weight 10 and body weight 1; one result per page or row. `snippet` is plain text (no highlight markers); `blockId` is the matching block, or null for a title match. Archived pages and rows are not indexed. The index is updated in the same transaction as each change, rebuilt by the seed, and rebuilt on server start when empty.
+7. **Uploads**: the type comes from the file's first bytes (PNG, JPEG, GIF, WebP); the client's content type is ignored, so an SVG renamed `.png` is 415. Over 10 MB is 413 `payload_too_large`. A missing `file` field is 400; a JSON body is 415. `GET /uploads/:id` needs the session cookie (browsers send it with same-origin `<img>` requests) and returns the stored content type with `X-Content-Type-Options: nosniff` and long private caching; malformed ids are 400 and unknown ids 404.
+8. **Markdown converter** (`src/server/src/markdown/markdown.ts`, exported from `@fortnight/server`): `markdownToNodes`, `nodesToMarkdown`, `blocksToMarkdown`, `blocksToTree`, `markdownToRich`, `richToMarkdown`, `normalizeRich`. Uses `marked`'s lexer (pure JS). Forms: headings, paragraphs, `- `, `1. `, `- [ ]` / `- [x]`, `> `, fenced code with language, `---`, `![caption](url)` (or `<img src alt width>` when a width is set), toggles as `<details><summary>`, inline databases as `<!-- database_view {...} -->`, inline `**`, `*`, `~~`, code spans, `<u>`, links, mentions as `[text](fortnight:page/<id>)` and `[text](fortnight:date/<date>)`, line breaks as `<br>`. Lossy by design: leading/trailing spaces of a block, image caption formatting, and children of blocks Markdown cannot nest (they follow their parent). C-005's agent tools use it.
+
+### Files
+
+- New: `src/server/src/store/{entities,changes,mappers}.ts` (generic stored rows, `ChangeRecorder`, mappers), `src/server/src/services/{pages,ops,search,undo}.ts`, `src/server/src/routes/{pages,search-changesets,uploads}.ts`, `src/server/src/markdown/markdown.ts`, `src/server/drizzle/0002_search_blocks.sql`.
+- Changed: `app.ts` (routes, multipart, guard also on `/uploads/`), `db/seed.ts` (rebuilds the search index), `main.ts` (rebuilds an empty index), `index.ts` (exports).
+- New dependencies (pure JavaScript, no install scripts): `@fastify/multipart@10.1.8`, `marked@18.2.0`.
+- Tests: `tests/server/{pages,ops-undo,search-uploads,markdown}.test.ts` and `api-helpers.ts`; `db-seed.test.ts` updated for the new search columns.
+
+### M1.1 acceptance checks and their tests
+
+| Check | Test |
+|---|---|
+| Nested page create, move and reorder | `pages.test.ts`: nested create, `afterId` order, move and reorder, cycles rejected |
+| Archive cascades, restore brings children back | `pages.test.ts`: archive/restore, incl. a separately archived child and an archived parent |
+| An ops batch with one invalid op changes nothing | `ops-undo.test.ts`: 6 invalid batches; DB snapshot and changeset count unchanged |
+| Positions ordered after 1,000 random inserts | `ops-undo.test.ts`: 1,000 random inserts in 4 batches through the API; order matches |
+| Stale `version` returns 409 | `pages.test.ts`: 409 `version_conflict` with the current page; `ops-undo.test.ts`: stale version after undo |
+| Search finds a word right after saving, title first, snippet | `search-uploads.test.ts`: immediate hit with snippet and block id; title first; prefixes, accents, renames, archive, seeded rows |
+| Image upload round-trips, rejects non-images and files over 10 MB | `search-uploads.test.ts`: byte-equal download, sniffed type, 415, 413, 401, 404 and 400 |
+| Undo restores the exact prior state | `ops-undo.test.ts`: snapshot compare (pages, blocks, workspace, search index; page version excluded by design) for ops, and for edit + move + archive; redo; conflict; double undo |
+| Markdown and blocks round trip | `markdown.test.ts`: every form, inline marks and special characters, the seeded page with all 13 block types, 1,000 random documents |
+
+### Checks run (on `29845f0`, based on main `8e65ad0`)
+
+- Worktree: `npm run typecheck` pass, `npm run lint` pass, `npm test` **12 files, 319 tests passed**, `npm run format:check` pass, `git diff --check` clean.
+- Fresh clone from GitHub at `29845f0`: `npm ci` exit 0 ("added 218 packages", no gyp step, no build tools on this machine), typecheck pass, lint pass, 319 tests pass.
+- Live (`DATA_DIR=<tmp> PORT=3019 npm run dev`, then curl): seeded pages listed; created a page; ops inserted a paragraph; search found it at once with snippet and block id; PNG upload 200 and `GET /uploads/:id` 200 `image/png`; undoing the ops changeset made search stop finding the word.
+
+### Known limitations
+
+- Row bodies (`/api/rows/:id`, `/api/rows/:id/ops`) come with C-003.
+- Search snippets have no highlight markers (the contract says plain text); the UI can highlight the query words itself.
+- The server uses one SQLite connection with synchronous transactions, so requests are serialized. Fine for the single-user app.
+
+### Contract requests
+
+- None. Everything above fits contract v1.
 
 ## C-001: M0 backend scaffold and contract v1
 

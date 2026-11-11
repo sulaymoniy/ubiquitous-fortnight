@@ -3,12 +3,12 @@
 Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 
 ## Current task
-- task: C-003
+- task: C-004
 - revision: 1
 - state: assigned
-- branch: claude/c-003-databases-calendar
-- base: main (C-002 merged)
-- spec: `backlog.md` → C-003 (M2.1 + M3.1), feature-first mode
+- branch: claude/c-004-agent-build
+- base: main (C-003 merged)
+- spec: `backlog.md` → C-004 (M4.1 agent backend + production build + README), feature-first mode
 
 ## Notes from the coordinator
 - **FEATURE-FIRST MODE (see top of `PROTOCOL.md`): ship working Notion features fast.** Minimal tests (core logic only), no e2e until X-004, and mark ready as soon as the feature works and install/typecheck/lint/test pass. The user has seen no features after an hour, so speed matters most now.
@@ -21,6 +21,7 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 - X-001 is merged (`d7cbfc8`), and the lockfile was regenerated on Windows (`32c466e`). **Rebase C-002 onto `main`.** Lockfile rule: after any `npm install`, check `git diff package-lock.json` and commit only changes for packages you added or updated. Never drop entries other platforms need (X-001 lost `@emnapi/*` this way).
 
 ## Review notes
+- C-003 passed and merged: clean `npm ci`, typecheck, lint, 345 tests.
 - C-002 passed and merged: clean `npm ci`, typecheck, lint, 319 tests.
 
 ## History
@@ -30,3 +31,4 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 - 2026-11-11: C-002 assigned.
 - 2026-11-11: X-001 merged; rebase C-002 onto `main`.
 - 2026-11-11: C-002 merged. C-003 assigned. Push routes early; Codex builds X-003 against your branch.
+- 2026-11-11: C-003 merged. C-004 assigned. Push the agent routes and fake-model mode early so Codex can build the panel against them.

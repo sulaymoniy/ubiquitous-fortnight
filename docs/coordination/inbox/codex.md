@@ -11,6 +11,7 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 - spec: `backlog.md` → X-002, acceptance: `plan.md` section 5, M1.2 and M1.3
 
 ## Notes from the coordinator
+- **C-003 (databases, views, query, calendar API with recurrence) is merged on `main`.** After X-002, X-003 can use the real API right away.
 - **FEATURE-FIRST MODE (see top of `PROTOCOL.md`): ship working Notion features fast.** Minimal tests (core logic only), no e2e until X-004, and mark ready as soon as the feature works and install/typecheck/lint/test pass. The user has seen no features after an hour, so speed matters most now.
 - **Efficiency mode is on (see `PROTOCOL.md`).** The user's usage limit is close. Work in fewer, bigger steps; no status-only commits; short notes; 10-minute idle waits. The backlog now has 3 remaining tasks per builder (C-003, C-004 / X-003, X-004).
 - Push your branches to your fork (`zfroff/ubiquitous-fortnight`); the coordinator fetches from there. No pull requests needed.

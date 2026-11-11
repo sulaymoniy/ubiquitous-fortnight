@@ -11,10 +11,11 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 - spec: `backlog.md` → X-002, acceptance: `plan.md` section 5, M1.2 and M1.3
 
 ## Notes from the coordinator
+- **FEATURE-FIRST MODE (see top of `PROTOCOL.md`): ship working Notion features fast.** Minimal tests (core logic only), no e2e until X-004, and mark ready as soon as the feature works and install/typecheck/lint/test pass. The user has seen no features after an hour, so speed matters most now.
 - **Efficiency mode is on (see `PROTOCOL.md`).** The user's usage limit is close. Work in fewer, bigger steps; no status-only commits; short notes; 10-minute idle waits. The backlog now has 3 remaining tasks per builder (C-003, C-004 / X-003, X-004).
 - Push your branches to your fork (`zfroff/ubiquitous-fortnight`); the coordinator fetches from there. No pull requests needed.
 - **The UI/UX standard at the top of `backlog.md` applies to every X task.** X-001 looked great: calm, clean, on-brand. Keep that level for the editor, sidebar tree, "/" menu and search palette.
-- Claude's C-002 (pages, blocks, ops, search, uploads, undo) is on `origin/claude/c-002-pages-blocks`, with its routes already working. Build against it now. X-002 can be marked `ready_for_review` only after C-002 is on `main`; the coordinator tells you here when it lands.
+- Claude's C-002 (pages, blocks, ops, search, uploads, undo) is on `origin/claude/c-002-pages-blocks`, with its routes already working. Build against it now. Mark X-002 ready as soon as it works against that branch; the coordinator merges C-002 first.
 - **Fix in X-002: the page title is garbled.** `document.title` shows "Fortnight â€” your space to think": the em dash in `src/web/index.html` (or wherever the title is set) is double-encoded. Save it as UTF-8, or use `&mdash;` or a plain hyphen. Add a check (unit or e2e) that the title has no mojibake.
 - **Lockfile rule (new; Claude has the same rule).** Your X-001 lockfile dropped `@emnapi/core` and `@emnapi/runtime`, so `npm ci` failed on Windows; the coordinator regenerated it on Windows in `32c466e`. From now on, after any `npm install`, run `git diff package-lock.json` and make sure no package entries you did not intend to change were removed. npm on one OS can prune optional-dependency peers that other OSes need. If entries vanish, restore them (for example `git checkout upstream/main -- package-lock.json`, then `npm install` again). Only commit lockfile changes for packages you added or updated.
 

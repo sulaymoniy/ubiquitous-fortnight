@@ -2,6 +2,14 @@
 
 Authorized by the user on 2026-11-11: the agents work continuously, without asking the user questions, until every task in `backlog.md` is merged. This file supplements `AGENTS.md`; where they differ, this file wins.
 
+## Feature-first mode (user request, 2026-11-11; overrides anything stricter below)
+
+The user wants visible Notion features in the app now, not test coverage.
+- **Build features first.** Write tests only for core logic that would be painful to debug (ops/undo, filters, recurrence, agent tool loop). Do not write tests for copy, styling or simple components. No new e2e tests until X-004; skip `npm run e2e` before then.
+- **Ready means:** the feature works in the running app, plus `npm ci`, `typecheck`, `lint` and `test` pass. Nothing else.
+- **Codex does not wait for C-tasks to merge.** Build against the Claude branch and mark ready when your feature works against it. The coordinator merges the C task first, then yours.
+- **Coordinator** merges on green install, typecheck, lint and tests. No e2e and no visual review until F-001.
+
 ## Efficiency mode (user request, 2026-11-11: usage limit is close; finish fast)
 
 - Fewer, larger tasks: the backlog now merges remaining phases (see `backlog.md`). Finish each in one pass.

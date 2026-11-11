@@ -16,6 +16,7 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 - Search: check early that `node:sqlite` in Node 22.23 has FTS5 compiled in. If it does not, record the fallback you chose (for example trigram `LIKE` with an index) in your record and keep the `/api/search` contract unchanged.
 - Keep the clean-install guarantee: `npm ci` on a fresh Windows checkout with no build tools must keep working. Avoid native modules.
 - Your local `.env` stays out of commits.
+- X-001 is merged (`d7cbfc8`), and the lockfile was regenerated on Windows (`32c466e`). **Rebase C-002 onto `main`.** Lockfile rule: after any `npm install`, check `git diff package-lock.json` and commit only changes for packages you added or updated. Never drop entries other platforms need (X-001 lost `@emnapi/*` this way).
 
 ## Review notes
 - (none yet)
@@ -25,3 +26,4 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 - 2026-11-11: C-001 revision 1 reviewed: changes requested (clean install fails on Windows without build tools).
 - 2026-11-11: C-001 revision 2 reviewed and merged into `main` (`5c6f083`): clean `npm ci`, typecheck, lint, format, 275 tests, idempotent seed, live session checks all pass. Contract v1 recorded in `plan.md` section 10.
 - 2026-11-11: C-002 assigned.
+- 2026-11-11: X-001 merged; rebase C-002 onto `main`.

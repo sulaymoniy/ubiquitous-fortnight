@@ -1,14 +1,14 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-const apiTarget = process.env.FORTNIGHT_API_TARGET ?? "http://127.0.0.1:3001";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+const apiTarget = process.env.FORTNIGHT_API_TARGET ?? 'http://127.0.0.1:3001';
 export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
     strictPort: true,
     proxy: {
-      "/api": apiTarget,
-      "/uploads": apiTarget,
+      '/api': apiTarget,
+      '/uploads': apiTarget,
     },
   },
 });

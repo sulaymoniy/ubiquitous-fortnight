@@ -1,7 +1,7 @@
 :root {
   color-scheme: light;
-  --font-ui: "Inter", system-ui, sans-serif;
-  --font-mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-mono: 'Cascadia Code', 'SFMono-Regular', Consolas, monospace;
   --color-canvas: #fafbf9;
   --color-surface: #ffffff;
   --color-sidebar: #f3f5f1;

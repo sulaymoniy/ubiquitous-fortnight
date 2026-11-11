@@ -1,5 +1,5 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState, type FormEvent } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -13,10 +13,10 @@ import {
   WifiOff,
   RefreshCw,
   FileText,
-} from "lucide-react";
-import { api, ApiError, unauthorizedEvent } from "./api/client";
-import type { MockUser, SessionResponse } from "@fortnight/shared";
-import { useShell } from "./store";
+} from 'lucide-react';
+import { api, ApiError, unauthorizedEvent } from './api/client';
+import type { MockUser, SessionResponse } from '@fortnight/shared';
+import { useShell } from './store';
 
 function Mark() {
   return (
@@ -26,18 +26,16 @@ function Mark() {
   );
 }
 function message(error: unknown) {
-  return error instanceof Error
-    ? error.message
-    : "Something went wrong. Please try again.";
+  return error instanceof Error ? error.message : 'Something went wrong. Please try again.';
 }
 function Login() {
   const client = useQueryClient();
-  const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
   const login = useMutation({
     mutationFn: api.login,
     onSuccess: (session) => {
-      client.setQueryData(["session"], session);
+      client.setQueryData(['session'], session);
     },
   });
   function submit(event: FormEvent) {
@@ -88,13 +86,9 @@ function Login() {
               {message(login.error)}
             </p>
           )}
-          <button
-            className="primary"
-            type="submit"
-            disabled={!name.trim() || login.isPending}
-          >
+          <button className="primary" type="submit" disabled={!name.trim() || login.isPending}>
             {login.isPending ? (
-              "Opening your workspace…"
+              'Opening your workspace…'
             ) : (
               <>
                 Enter workspace <ArrowRight size={16} aria-hidden="true" />
@@ -108,32 +102,29 @@ function Login() {
           Any name works. Everyone shares this workspace.
         </p>
       </main>
-      <footer className="login-footer">
-        A place to think. A little more clearly.
-      </footer>
+      <footer className="login-footer">A place to think. A little more clearly.</footer>
     </div>
   );
 }
 function Shell({ user }: { user: MockUser }) {
   const client = useQueryClient();
-  const { assistantOpen, sidebarOpen, toggleAssistant, toggleSidebar } =
-    useShell();
+  const { assistantOpen, sidebarOpen, toggleAssistant, toggleSidebar } = useShell();
   const health = useQuery({
-    queryKey: ["health"],
+    queryKey: ['health'],
     queryFn: ({ signal }) => api.health(signal),
     refetchInterval: 30000,
   });
   const logout = useMutation({
     mutationFn: api.logout,
     onSuccess: () => {
-      client.setQueryData(["session"], null);
+      client.setQueryData(['session'], null);
       client.removeQueries({
-        predicate: (query) => query.queryKey[0] !== "session",
+        predicate: (query) => query.queryKey[0] !== 'session',
       });
     },
   });
   return (
-    <div className={"app-shell" + (sidebarOpen ? " sidebar-open" : "")}>
+    <div className={'app-shell' + (sidebarOpen ? ' sidebar-open' : '')}>
       <a className="skip-link" href="#workspace">
         Skip to workspace
       </a>
@@ -187,12 +178,8 @@ function Shell({ user }: { user: MockUser }) {
               <small>Demo member</small>
             </div>
           </div>
-          <button
-            className="logout"
-            onClick={() => logout.mutate()}
-            disabled={logout.isPending}
-          >
-            {logout.isPending ? "Signing out…" : "Log out"}
+          <button className="logout" onClick={() => logout.mutate()} disabled={logout.isPending}>
+            {logout.isPending ? 'Signing out…' : 'Log out'}
             <LogOut size={15} aria-hidden="true" />
           </button>
           {logout.isError && (
@@ -218,7 +205,7 @@ function Shell({ user }: { user: MockUser }) {
             <strong>Home</strong>
           </div>
           <button
-            className={"assistant-toggle" + (assistantOpen ? " selected" : "")}
+            className={'assistant-toggle' + (assistantOpen ? ' selected' : '')}
             onClick={toggleAssistant}
             aria-expanded={assistantOpen}
             aria-controls="assistant-panel"
@@ -237,22 +224,16 @@ function Shell({ user }: { user: MockUser }) {
                 </span>
                 <h1>A fresh beginning.</h1>
                 <p>
-                  Welcome, {user.name}.<br />A little space to collect what
-                  matters.
+                  Welcome, {user.name}.<br />A little space to collect what matters.
                 </p>
               </div>
-              <section
-                className="welcome-note"
-                aria-labelledby="welcome-heading"
-              >
+              <section className="welcome-note" aria-labelledby="welcome-heading">
                 <ArrowUpRight size={24} aria-hidden="true" />
                 <div>
-                  <h2 id="welcome-heading">
-                    Good things start with a blank page.
-                  </h2>
+                  <h2 id="welcome-heading">Good things start with a blank page.</h2>
                   <p>
-                    Your workspace is taking shape. Soon, your notes, projects,
-                    and calendar will feel right at home here.
+                    Your workspace is taking shape. Soon, your notes, projects, and calendar will
+                    feel right at home here.
                   </p>
                 </div>
               </section>
@@ -272,24 +253,19 @@ function Shell({ user }: { user: MockUser }) {
                     )}
                     <strong role="status">
                       {health.isPending
-                        ? "Connecting to workspace…"
+                        ? 'Connecting to workspace…'
                         : health.isError
-                          ? "Workspace API unavailable"
-                          : "Workspace API connected"}
+                          ? 'Workspace API unavailable'
+                          : 'Workspace API connected'}
                     </strong>
                   </div>
                   <p>
                     {health.data
-                      ? "Contract " +
-                        health.data.contractVersion +
-                        " · Ready for what comes next."
-                      : "Your connection to the workspace service."}
+                      ? 'Contract ' + health.data.contractVersion + ' · Ready for what comes next.'
+                      : 'Your connection to the workspace service.'}
                   </p>
                   {health.isError && (
-                    <button
-                      className="text-button"
-                      onClick={() => void health.refetch()}
-                    >
+                    <button className="text-button" onClick={() => void health.refetch()}>
                       <RefreshCw size={13} aria-hidden="true" />
                       Try again
                     </button>
@@ -303,11 +279,7 @@ function Shell({ user }: { user: MockUser }) {
             </div>
           </main>
           {assistantOpen && (
-            <aside
-              id="assistant-panel"
-              className="assistant-panel"
-              aria-label="Assistant"
-            >
+            <aside id="assistant-panel" className="assistant-panel" aria-label="Assistant">
               <div className="panel-title">
                 <span>
                   <Sparkles size={14} aria-hidden="true" />
@@ -347,20 +319,19 @@ function Shell({ user }: { user: MockUser }) {
 export function App() {
   const client = useQueryClient();
   useEffect(() => {
-    const expire = () => client.setQueryData(["session"], null);
+    const expire = () => client.setQueryData(['session'], null);
     const dismiss = (event: KeyboardEvent) => {
-      if (event.key === "Escape")
-        useShell.setState({ assistantOpen: false, sidebarOpen: false });
+      if (event.key === 'Escape') useShell.setState({ assistantOpen: false, sidebarOpen: false });
     };
     window.addEventListener(unauthorizedEvent, expire);
-    window.addEventListener("keydown", dismiss);
+    window.addEventListener('keydown', dismiss);
     return () => {
       window.removeEventListener(unauthorizedEvent, expire);
-      window.removeEventListener("keydown", dismiss);
+      window.removeEventListener('keydown', dismiss);
     };
   }, [client]);
   const session = useQuery<SessionResponse | null>({
-    queryKey: ["session"],
+    queryKey: ['session'],
     queryFn: async ({ signal }) => {
       try {
         return await api.session(signal);

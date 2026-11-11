@@ -1,28 +1,11 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
-    "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "types": [
-      "vite/client",
-      "vitest/globals",
-      "@testing-library/jest-dom",
-      "chai"
-    ],
-    "paths": {
-      "*": ["./node_modules/*", "./node_modules/@types/*"],
-      "react-dom/*": ["./node_modules/@types/react-dom/*"],
-      "react": ["./node_modules/@types/react"],
-      "react/*": ["./node_modules/@types/react/*"],
-      "@fortnight/shared": ["./node_modules/@fortnight/shared/src/index.ts"]
-    },
-    "allowImportingTsExtensions": true
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom", "node"]
   },
   "include": ["src", "*.ts", "../../tests/web", "../../tests/e2e"]
 }

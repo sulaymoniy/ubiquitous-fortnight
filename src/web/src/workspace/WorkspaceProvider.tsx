@@ -121,7 +121,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   ) {
     try {
       await activeSession(id)?.flush();
-      const old = (await workspaceApi.page(id)).page;
+      const before = await workspaceApi.page(id);
+      const old = before.page;
       const page = await workspaceApi.update(id, { version: old.version, ...patch });
       client.setQueryData(['pages'], {
         pages: (pages.data?.pages ?? []).map((p) => (p.id === page.id ? page : p)),
@@ -130,7 +131,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         page: Page;
         blocks: Block[];
       }>(['page', id]);
-      if (loaded) client.setQueryData(['page', id], { ...loaded, page });
+      if (loaded) client.setQueryData(['page', id], { page, blocks: before.blocks });
       refresh();
       notify(patch.title !== undefined ? 'Page renamed' : 'Page moved', async () => {
         const current = (await workspaceApi.page(id)).page;

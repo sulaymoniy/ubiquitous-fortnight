@@ -1,21 +1,21 @@
 # Fortnight plan: Notion-like workspace with calendar and Claude agent
 
 - Author: Claude (`claude/notion-plan`)
-- Status: **PROPOSAL, pending Codex review and user approval.** Nothing here is agreed until both task records mark it accepted.
+- Status: **User decisions D1–D5 made on 2026-11-11 (section 9).** Contract and remaining details are still a **proposal pending Codex review**. Nothing in the contract is agreed until both task records mark it accepted.
 - Codex input: `codex/notion-plan` was not on the remote when this was written (fetched 2026-11-11). Every section below is a proposal waiting on Codex's record. Where I expect Codex to have its own view, I say so and leave the decision open.
 - Communication channel: Codex runs on a different machine. The only shared channel is Git: each agent pushes its own branch and record; the user relays prompts. Neither agent can see the other's conversation.
 
 ## 1. Goal and phases
 
-A single-user web app that works like a Notion workspace (page tree, block editor, databases) with a built-in calendar, plus a Claude agent that can act on the workspace. It is an experiment platform for the agent, so every change must be observable and undoable.
+A single-user web app (behind a mock login, no real auth) that works like a Notion workspace (page tree, block editor, databases) with a built-in calendar, plus a Claude agent that can act on the workspace. It is an experiment platform for the agent, so every change must be observable and undoable.
 
 | Phase | Content |
 |---|---|
-| 0 | Scaffold, shared contract package, dev loop, CI-able checks |
+| 0 | Scaffold, shared contract package, dev loop, CI-able checks, mock login |
 | 1 | Sidebar page tree, block editor (text, headings, lists, to-dos, toggles, code, quote, divider, image), "/" menu, drag to reorder, autosave, search |
 | 2 | Databases: table, board, list, gallery views; properties (text, number, select, multi-select, date, checkbox, URL, relation); filter and sort |
 | 3 | Calendar: month, week, day views over database rows with date properties; drag to reschedule |
-| 4 | Claude agent: chat panel with tool use over pages, blocks, databases and events; inline `/ai`; every action shown and undoable; API key server-only |
+| 4 | Claude agent: chat panel with tool use over pages, blocks, databases and events; inline `/ai`; every action shown and undoable; API key server-only; switch between agent profiles in the app |
 | Later | Templates, sharing and export, real-time collaboration, dark mode, mobile |
 
 ## 2. Tech stack (proposal)
@@ -42,9 +42,10 @@ Dev loop: `npm run dev` starts the API on `:3001` and Vite on `:5173`; Vite prox
 package.json              # workspace root, scripts            Claude (M0)
 tsconfig.base.json        # shared compiler options            Claude (M0)
 .eslintrc / .prettierrc   # shared lint/format config          Claude (M0)
-.env.example              # ANTHROPIC_API_KEY, AGENT_MODEL...  Claude
-.gitignore                # add node_modules, data/, .env      Claude edits, Codex to approve (Codex created it)
-index.html                # existing root page                 untouched until the user decides (section 9)
+.env.example              # ANTHROPIC_API_KEY placeholder      Claude
+.env                      # your real key, local only, gitignored
+.gitignore                # node_modules, data/, .env, dist/, agent-profiles.json; Claude edited with user authorization (Codex created it)
+                          # root index.html removed (user decision D4); the app entry is src/web/index.html
 src/
   shared/                 # @fortnight/shared: the contract    Claude keeps it; changes need both records
     src/model.ts          # entities
@@ -180,11 +181,16 @@ Relative date ops (`this_week` etc.) resolve in the workspace time zone on the s
 
 ### 4.3 REST API
 
+**Mock login (user decision D2).** Imitation only: no user table, no password check, no real auth. `POST /api/session` accepts any name (and any password), creates `MockUser { id, name, initials, color }` derived from the name, keeps it in server memory, and sets an `fsid` HttpOnly cookie. Every `/api` route except `health` and `session` returns 401 without that cookie; the web app shows the login screen on 401. A server restart logs everyone out. The user's name appears in the UI and is passed to the agent as context. Workspace data stays in the one local SQLite file and is shared by every mock user.
+
 Prefix `/api`, JSON bodies. Errors: `{ error: { code: string, message: string, details?: unknown } }` with HTTP 400 (validation), 404, 409 (version conflict or undo conflict), 500. Mutations that need conflict checks take `version` and return 409 with the current entity when it is stale.
 
 | Method and path | Request | Response |
 |---|---|---|
-| `GET /api/health` | | `{ ok: true, contractVersion }` |
+| `GET /api/health` | | `{ ok: true, contractVersion, agentKeyConfigured: boolean }` |
+| `POST /api/session` | `{ name: string, password?: string }` (any password accepted) | `{ user: MockUser }` + `fsid` cookie |
+| `GET /api/session` | | `{ user: MockUser }` or 401 |
+| `DELETE /api/session` | | `{}` (logout) |
 | `GET /api/workspace` | | `Workspace` |
 | `PATCH /api/workspace` | `{ name?, settings? }` | `Workspace` |
 | `GET /api/pages` | `?includeArchived=bool` | `{ pages: Page[] }` flat list, client builds the tree (excludes rows) |
@@ -237,15 +243,18 @@ EventOccurrence {
 
 Every database that has at least one date property can feed the calendar. The workspace seeds one database named **Calendar** (properties: Name, Date, Tags, Notes) as the default target for new events.
 
-### 4.4 Recurrence (decision D3)
+### 4.4 Recurrence (decision D3: accepted by the user)
 
-Proposal: `DateValue.recurrence` holds an RRULE subset (`FREQ=DAILY|WEEKLY|MONTHLY`, `INTERVAL`, `BYDAY`, `COUNT`, `UNTIL`). The row appears once in tables (showing its first date and a "repeats" marker) and the server expands occurrences inside `/api/calendar/events`. Dragging one occurrence moves the whole series in v0; per-occurrence exceptions are later.
+`DateValue.recurrence` holds an RRULE subset (`FREQ=DAILY|WEEKLY|MONTHLY`, `INTERVAL`, `BYDAY`, `COUNT`, `UNTIL`). The row appears once in tables (showing its first date and a "repeats" marker) and the server expands occurrences inside `/api/calendar/events`. Dragging one occurrence moves the whole series in v0; per-occurrence exceptions are later.
 
 ### 4.5 Agent API (Phase 4)
 
 | Method and path | Request | Response |
 |---|---|---|
-| `POST /api/agent/conversations` | `{ title? }` | `{ id, title, createdAt }` |
+| `GET /api/agent/profiles` | | `{ profiles: AgentProfile[], defaultProfileId }` |
+| `PATCH /api/agent/profiles/default` | `{ profileId }` | `{ defaultProfileId }` |
+| `POST /api/agent/conversations` | `{ title?, profileId? }` | `{ id, title, profileId, createdAt }` |
+| `PATCH /api/agent/conversations/:id` | `{ title?, profileId? }` (switch agent mid-conversation) | conversation |
 | `GET /api/agent/conversations` | | `{ conversations: [...] }` |
 | `GET /api/agent/conversations/:id` | | `{ conversation, items: AgentTranscriptItem[] }` |
 | `POST /api/agent/conversations/:id/messages` | `{ text, context: { pageId?, selectedBlockIds?, now, timeZone } }` | **SSE stream** (below) |
@@ -256,7 +265,7 @@ Proposal: `DateValue.recurrence` holds an RRULE subset (`FREQ=DAILY|WEEKLY|MONTH
 SSE events (`event:` name, JSON `data:`):
 
 ```ts
-'run.started'    { runId, model }
+'run.started'    { runId, profileId, model }
 'text.delta'     { text }
 'tool.started'   { toolUseId, name, input }
 'tool.finished'  { toolUseId, ok: boolean, summary: string, changesetId: string | null,
@@ -299,8 +308,23 @@ Design rules:
 
 Value formats for `properties` by name: text/url `string`, number `number`, checkbox `boolean`, select `option name` (created if missing, flagged in the result), multi-select `string[]`, date `{ start, end?, allDay?, recurrence? }`, relation `string[]` of row ids or titles.
 
+Agent switching (user decision D5). The user brings their own API key: it goes in the root `.env` as `ANTHROPIC_API_KEY` and nowhere else. The app can switch between **agent profiles**:
+
+```ts
+AgentProfile {
+  id, name, description,
+  provider: 'anthropic',              // field kept so other providers can be added later
+  model: string,                      // e.g. 'claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'
+  effort: 'low' | 'medium' | 'high',
+  instructions: string | null,        // extra system instructions on top of the base prompt
+  tools: 'all' | 'read_only'          // read_only hides every mutating tool
+}
+```
+
+Built-in profiles live in `src/server/src/agent/profiles.ts` (for example "Opus, full access", "Sonnet, full access", "Haiku, read only"). Extra profiles can be added in `agent-profiles.json` at the repo root (optional, gitignored). The agent panel shows a profile picker; the choice is stored per conversation, and the default is stored in workspace settings. Inline `/ai` uses the default profile. If `ANTHROPIC_API_KEY` is empty, `/api/health` reports `agentKeyConfigured: false` and the panel shows "Add your key to .env" instead of failing.
+
 Model call design (server side, Claude's area):
-- Model `claude-opus-5-5` by default, set by `AGENT_MODEL` in `.env` (decision D5). Adaptive thinking; effort set explicitly (`medium` for the chat agent, `low` for inline AI).
+- Model and effort come from the selected profile. Adaptive thinking; effort always set explicitly (`low` for inline AI).
 - Streaming Messages API with a manual tool loop, so each tool call can be wrapped in its own changeset and streamed as SSE. Iteration cap (default 15 tool rounds) and cancel support.
 - No forced `tool_choice` (not supported on current models); `strict: true` tool schemas, with server-side validation of every input before it runs.
 - Prompt caching: tools and the system prompt are fixed and come first; per-turn context (now, time zone, current page, selection) goes in a message after the cached prefix, so the cache stays warm.
@@ -316,10 +340,10 @@ Each milestone ends with a pull request to `main` per agent, reviewed by the coo
 
 | Who | Work |
 |---|---|
-| Claude | Root workspace (`package.json`, `tsconfig.base.json`, lint/format, `.env.example`), `src/shared` with contract v0 schemas, `src/server` skeleton with `/api/health`, SQLite + migrations, seed script, `tests/server` and `tests/contract` set up |
-| Codex | `src/web` skeleton (Vite + React + TS), app shell (sidebar, main area, right panel slot), typed API client over `@fortnight/shared`, `tests/web` and `tests/e2e` set up |
+| Claude | Root workspace (`package.json`, `tsconfig.base.json`, lint/format), `src/shared` with contract v0 schemas, `src/server` skeleton with `/api/health` and mock-login `/api/session` routes plus the 401 guard, SQLite + migrations, seed script, `.env` loading, `tests/server` and `tests/contract` set up |
+| Codex | `src/web` skeleton (Vite + React + TS) with `src/web/index.html` as the app entry, mock login screen (name + password field, any value accepted) and logout, app shell (sidebar, main area, right panel slot), typed API client over `@fortnight/shared`, `tests/web` and `tests/e2e` set up |
 
-Accept when: `npm install` and `npm run dev` start both apps on a clean checkout; the web shell shows the health status from the API; `npm run typecheck`, `npm run lint` and `npm test` pass in every workspace; contract v1 is marked accepted in both task records.
+Accept when: `npm install` and `npm run dev` start both apps on a clean checkout; opening the app shows the login screen, any name logs in, the shell shows the user's name and the health status, logout returns to login, and API calls without the cookie get 401; `npm run typecheck`, `npm run lint` and `npm test` pass in every workspace; contract v1 is marked accepted in both task records.
 
 ### Phase 1. Core
 
@@ -349,8 +373,8 @@ Accept when: `npm install` and `npm run dev` start both apps on a clean checkout
 
 | Milestone | Owner | Acceptance checks |
 |---|---|---|
-| M4.1 Agent backend | Claude | Unit test per tool against a temporary database; fake-model scripts cover "schedule a 1h review every Friday", "summarize this page" and "what's on my week?" end to end over SSE; undoing a run restores the exact prior state (snapshot compare); invalid tool inputs return `is_error` and the run continues; iteration cap and cancel work; the API key never appears in responses, logs or web build output; inline endpoint streams for every action |
-| M4.2 Agent panel and inline AI | Codex | Chat panel streams text; each tool call shows as a card with its input, result summary and undo button, plus "Undo all" for the run; the current page is sent as context; affected pages, tables and calendar refresh; `/ai` menu in the editor previews output with accept and discard; accepted text is undoable |
+| M4.1 Agent backend | Claude | Unit test per tool against a temporary database; fake-model scripts cover "schedule a 1h review every Friday", "summarize this page" and "what's on my week?" end to end over SSE; undoing a run restores the exact prior state (snapshot compare); invalid tool inputs return `is_error` and the run continues; iteration cap and cancel work; the API key never appears in responses, logs or web build output; inline endpoint streams for every action; each built-in profile sends its own model and effort; a `read_only` profile cannot call mutating tools; switching profile mid-conversation takes effect on the next message; an empty key gives a clear "add your key" error, not a crash |
+| M4.2 Agent panel and inline AI | Codex | Profile picker in the panel (name, model, read-only badge) with a "set as default" option; "Add your key to .env" notice when the key is missing; chat panel streams text; each tool call shows as a card with its input, result summary and undo button, plus "Undo all" for the run; the current page is sent as context; affected pages, tables and calendar refresh; `/ai` menu in the editor previews output with accept and discard; accepted text is undoable |
 | M4.3 Evaluation | Claude | A small manual eval (about 15 prompts across pages, databases and calendar) against the real model, with a cost estimate shown before running; results recorded in `docs/` |
 
 ### Later (not scheduled)
@@ -371,7 +395,7 @@ Templates, export (Markdown/HTML/PDF) and share links, real-time collaboration (
 |---|---|
 | Editor library's document model differs from ours | Our block JSON is the storage format; Codex maps to and from it in one adapter module with round-trip tests |
 | Undo conflicts after later edits | Undo checks that touched entities have not changed since; otherwise 409 with a list, and the UI explains it |
-| Agent cost while experimenting | Fake-model mode for all automated tests; model and effort set by env; usage returned on every run |
+| Agent cost while experimenting | Fake-model mode for all automated tests; model and effort chosen per agent profile in the app; usage returned on every run |
 | Async coordination across machines | All decisions live in Git records; nothing depends on chat memory |
 
 ## 8. Open questions for Codex
@@ -381,16 +405,18 @@ Templates, export (Markdown/HTML/PDF) and share links, real-time collaboration (
 3. Any objection to `src/shared` being kept by Claude with changes agreed in both records?
 4. Calendar UI: build it or use a library (for example FullCalendar)? Affects nothing in the contract.
 
-## 9. Decisions for the user
+## 9. User decisions (made 2026-11-11)
 
-- **D1. Ownership split.** Codex = frontend, Claude = backend, storage, contract and agent (proposed), or vertical slices.
-- **D2. Single user, no login, local only** for Phases 1–4 (proposed). Auth would come with sharing and collaboration.
-- **D3. Recurring events.** RRULE stored on one row and expanded in the calendar (proposed), or the agent creates one row per occurrence.
-- **D4. Root `index.html`.** Keep it until M0 lands, then replace it with the app entry (proposed), or keep it as-is and serve the app from `src/web` only.
-- **D5. Agent model and budget.** Default `claude-opus-5-5` (most capable current Opus), configurable by env; or pick a cheaper default such as `claude-sonnet-5-5` for day-to-day experiments.
+- **D1. Ownership split: accepted.** Codex owns the frontend; Claude owns backend, storage, contract and agent.
+- **D2. Mock login.** An imitation login with no real auth and no user database (section 4.3). Local, single workspace.
+- **D3. Recurring events: proposal accepted.** RRULE on one row, expanded in the calendar (section 4.4).
+- **D4. Root `index.html`: removed** in commit on `claude/notion-plan`. This overrides the `AGENTS.md` line that keeps it; the app entry becomes `src/web/index.html` in M0. Codex should update `AGENTS.md` (its file) to match.
+- **D5. Agent.** The user supplies their own API key in the root `.env` (`.env.example` committed; `.env` gitignored). The app gets an in-app agent switcher based on agent profiles (section 4.6).
+- `.gitignore`: edited by Claude with the user's authorization to add `.env`, `node_modules/`, `data/`, `dist/` and `agent-profiles.json`. Codex created this file; noted here so Codex sees it.
 
 ## 10. Contract changelog
 
 | Version | Change | Status |
 |---|---|---|
 | v0 | Initial proposal (this document) | Pending Codex review |
+| v0.1 | Mock login routes and 401 guard; `agentKeyConfigured` in health; agent profiles and profile routes; recurrence accepted | User decisions applied; contract still pending Codex review |

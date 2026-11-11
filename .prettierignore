@@ -1,0 +1,9 @@
+node_modules/
+dist/
+data/
+.worktrees/
+package-lock.json
+src/server/drizzle/
+playwright-report/
+test-results/
+*.md

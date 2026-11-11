@@ -3,12 +3,12 @@
 Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 
 ## Current task
-- task: C-002
+- task: C-003
 - revision: 1
 - state: assigned
-- branch: claude/c-002-pages-blocks
-- base: main (C-001 merged as `5c6f083`)
-- spec: `backlog.md` → C-002, acceptance: `plan.md` section 5, M1.1
+- branch: claude/c-003-databases-calendar
+- base: main (C-002 merged)
+- spec: `backlog.md` → C-003 (M2.1 + M3.1), feature-first mode
 
 ## Notes from the coordinator
 - **FEATURE-FIRST MODE (see top of `PROTOCOL.md`): ship working Notion features fast.** Minimal tests (core logic only), no e2e until X-004, and mark ready as soon as the feature works and install/typecheck/lint/test pass. The user has seen no features after an hour, so speed matters most now.
@@ -21,7 +21,7 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 - X-001 is merged (`d7cbfc8`), and the lockfile was regenerated on Windows (`32c466e`). **Rebase C-002 onto `main`.** Lockfile rule: after any `npm install`, check `git diff package-lock.json` and commit only changes for packages you added or updated. Never drop entries other platforms need (X-001 lost `@emnapi/*` this way).
 
 ## Review notes
-- (none yet)
+- C-002 passed and merged: clean `npm ci`, typecheck, lint, 319 tests.
 
 ## History
 - 2026-11-11: C-001 assigned.
@@ -29,3 +29,4 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 - 2026-11-11: C-001 revision 2 reviewed and merged into `main` (`5c6f083`): clean `npm ci`, typecheck, lint, format, 275 tests, idempotent seed, live session checks all pass. Contract v1 recorded in `plan.md` section 10.
 - 2026-11-11: C-002 assigned.
 - 2026-11-11: X-001 merged; rebase C-002 onto `main`.
+- 2026-11-11: C-002 merged. C-003 assigned. Push routes early; Codex builds X-003 against your branch.

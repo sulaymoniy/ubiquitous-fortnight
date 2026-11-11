@@ -2,12 +2,12 @@
 
 ## Status
 - task: C-001
-- revision: 1
+- revision: 2
 - state: ready_for_review
 - branch: claude/c-001-m0-scaffold
-- commit: 85d83a93ae6f39b5e9e94391a67336be6332eb57
-- updated: 2026-11-11T17:05:00+05:00
-- note: C-001 complete on top of main `ca8d7b5`: workspace root, contract v1 (`@fortnight/shared`), server (health, mock login, 401 guard, migrations, seed) and 265 passing tests. Contract v1 needs Codex's acceptance in `codex-task.md`.
+- commit: 2bf33f54f2167e7ae0b02e253e5c904245b18550
+- updated: 2026-11-11T17:19:04+05:00
+- note: Review fixes done on top of main `6173a9c`. (1) Clean `npm ci` now works on Windows with no build tools: the server uses Node's built-in `node:sqlite` instead of better-sqlite3; proof below. (2) Status times now come from `date -Iseconds`. 275 tests pass.
 
 ## Role and ownership (accepted by the user and Codex)
 
@@ -17,6 +17,38 @@
 - Coordinator owns: `PROTOCOL.md`, `backlog.md`, `plan.md`, `inbox/*`.
 
 ## C-001: M0 backend scaffold and contract v1
+
+### Revision 2 (review of `85d83a9`)
+
+1. **Clean install without build tools (blocking).** Cause: `better-sqlite3@13` ships `binding.gyp`, and npm 10.9.9 runs its default `node-gyp rebuild` install step for it despite `gypfile: false` and the bundled `prebuilds/`, so `npm ci` needs Visual Studio. My worktree only passed because it was installed incrementally.
+   - Fix: removed `better-sqlite3` entirely. The server uses **Node's built-in `node:sqlite`** (SQLite 3.53 with FTS5, part of Node, nothing to install or compile) through `src/server/src/db/sqlite.ts`, a ~150-line adapter that implements the part of the better-sqlite3 API that Drizzle's synchronous session uses (`prepare`, `run`/`all`/`get`, `raw()`, `transaction()` with savepoints), plus `pragma`, `exec`, `close`. `db/client.ts` builds the Drizzle database from `drizzle-orm/better-sqlite3/session` and `drizzle-orm/sqlite-core`, because `drizzle-orm/better-sqlite3` (the driver entry) imports the native package when it loads. Drizzle queries, transactions and the migrator are unchanged; only `@types/better-sqlite3` (types only) stays.
+   - Alternatives rejected: `@libsql/client` (pooled connections lose per-connection `PRAGMA foreign_keys`, and with one connection a request during an open transaction fails instead of waiting); the synchronous `libsql` package (rows carry an extra `_metadata` field, `pragma` returns objects, older SQLite 3.45); Drizzle's own `node-sqlite` driver (only in 1.0 release candidates).
+   - Node's one-time "SQLite is an experimental feature" warning is filtered at load (test asserts it is not printed). Root `engines.node` is now `>=22.16.0 <23` (`StatementSync#setReturnArrays`); the adapter throws a clear error on older Node.
+   - Lockfile regenerated with npm (not hand-edited): the only changes are `better-sqlite3` and `node-addon-api` removed. Remaining install scripts in the lockfile are esbuild's (checks its prebuilt platform binary from optional dependencies, no compiler) and fsevents (macOS only).
+   - New `tests/server/sqlite-adapter.test.ts` (10 tests): commit, rollback, nested savepoint rollback, client-level savepoints, async function rejected, raw arrays and plain-object rows, JSON columns and selected fields, foreign keys enforced, no ExperimentalWarning printed, `better-sqlite3` neither a dependency nor resolvable.
+2. **Status times**: taken from `date -Iseconds` from now on.
+
+**Clean-install proof** (fresh clone from GitHub at `2bf33f5`, this machine has no Visual Studio / C++ build tools):
+
+```
+$ git clone --branch claude/c-001-m0-scaffold https://github.com/sulaymoniy/ubiquitous-fortnight.git clean2
+$ git rev-parse HEAD            -> 2bf33f54f2167e7ae0b02e253e5c904245b18550
+$ node -v; npm -v               -> v22.23.4, 10.9.9
+$ npm config get ignore-scripts -> false
+$ where cl.exe msbuild.exe      -> INFO: Could not find files for the given pattern(s).
+$ npm ci                        -> added 215 packages, and audited 218 packages in 9s; exit code 0; no gyp output
+$ npm run typecheck             -> PASS
+$ npm run lint                  -> PASS
+$ npm test                      -> Test Files 8 passed (8); Tests 275 passed (275)
+$ DATA_DIR=<tmp> npm run seed   -> "Seeded a new workspace in <tmp>ortnight.db"
+$ DATA_DIR=<tmp> npm run seed   -> "Seed data already present in <tmp>ortnight.db; nothing changed"
+$ DATA_DIR=<tmp> PORT=3018 npm run dev, then curl:
+    GET /api/health                -> {"ok":true,"contractVersion":"1.0.0","agentKeyConfigured":false}
+    GET /api/workspace (no cookie) -> 401
+    POST /api/session              -> {"user":{"name":"Clean Install","initials":"CI",...}}
+    GET /api/session (cookie)      -> 200
+    dev log: no ExperimentalWarning, no gyp
+```
 
 ### How Codex consumes `@fortnight/shared`
 
@@ -28,7 +60,7 @@
 - Runtime parsing: `Schema.parse(json)` on responses, or `safeParse` to show contract errors. Zod is 4.x (`zod@4.6.7`).
 - Root scripts run `--workspaces --if-present`, so `src/web` only needs its own `dev`, `build`, `typecheck`, `lint`, `test` and `e2e` scripts. `npm run dev` at the root runs every workspace's `dev` in parallel (`scripts/run-parallel.mjs`). Root devDependencies already include `typescript@6.0.3`, `vite@8.3.8`, `vitest@5.1.0`, ESLint 10 and Prettier; the shared `eslint.config.js` already has browser globals for `src/web/**` and `tests/web/**`.
 
-### Contract v1 precision decisions (for `plan.md` section 10, v1 row; pending Codex acceptance)
+### Contract v1 precision decisions (for `plan.md` section 10, v1 row; accepted by the coordinator)
 
 All are refinements inside the accepted v0.1 design:
 
@@ -55,14 +87,14 @@ All are refinements inside the accepted v0.1 design:
 
 ### What was built (commit `85d83a9`, on top of `ade8fd2`)
 
-- **Root**: npm workspaces `src/*`; root scripts `dev` (parallel), `build`, `typecheck`, `lint`, `test`, `e2e`, `seed` run per workspace with `--if-present`; `format` / `format:check`. Exact versions everywhere. Node `>=22.12 <23`.
+- **Root**: npm workspaces `src/*`; root scripts `dev` (parallel), `build`, `typecheck`, `lint`, `test`, `e2e`, `seed` run per workspace with `--if-present`; `format` / `format:check`. Exact versions everywhere. Node `>=22.16 <23` (revision 2).
 - **`@fortnight/shared`** (`src/shared/src`): `common.ts` (ids, timestamps, positions, time zones, colors, error codes and shapes), `model.ts` (all entities, rich text, 13 block variants, 9 property variants, DateValue rules, views, EventOccurrence, changesets), `filters.ts`, `ops.ts`, `api.ts` (every REST request/response in plan 4.3), `agent.ts` (profiles, conversations, transcript items, SSE events, inline AI, all 19 tool input schemas), `recurrence.ts` (RRULE subset parser), `positions.ts` (fractional-index helpers). `CONTRACT_VERSION = "1.0.0"`.
 - **`@fortnight/server`** (`src/server`):
   - `src/app.ts` `buildApp({ db, config })`: Fastify 5 with Zod validation and response serialization from the shared schemas; JSON only (other content types are 415); 1 MB body limit (uploads get their own limit in C-002).
   - Routes: `GET /api/health`, `POST/GET/DELETE /api/session`. Mock users are derived from the name (`mockUserFromName`), sessions in memory, cookie `fsid` HttpOnly, SameSite=Lax, path `/`.
   - 401 guard as an `onRequest` hook on `/api` and `/api/*` except `GET /api/health` and `/api/session`. Unknown `/api` routes are 401 without a session and 404 with one.
   - Errors: every non-2xx is `{ error: { code, message, details? } }`; 500s never include internals.
-  - Database: `src/db/schema.ts` (13 tables incl. agent runs/items and the FTS5 `search_index`), migrations in `src/server/drizzle` (generated by `npm run db:generate -w @fortnight/server`, plus a custom FTS5 migration), applied on every start. SQLite file at `data/fortnight.db` (WAL, foreign keys on). `DATA_DIR`, `DB_FILE`, `PORT` (default 3001), `HOST` (default 127.0.0.1), `LOG_LEVEL`, `FORTNIGHT_TIME_ZONE` (seed default `UTC`) are read from the environment / root `.env`.
+  - Database: `src/db/schema.ts` (13 tables incl. agent runs/items and the FTS5 `search_index`), migrations in `src/server/drizzle` (generated by `npm run db:generate -w @fortnight/server`, plus a custom FTS5 migration), applied on every start. SQLite file at `data/fortnight.db` (WAL, foreign keys on), opened with `node:sqlite` since revision 2. `DATA_DIR`, `DB_FILE`, `PORT` (default 3001), `HOST` (default 127.0.0.1), `LOG_LEVEL`, `FORTNIGHT_TIME_ZONE` (seed default `UTC`) are read from the environment / root `.env`.
   - Seed (`npm run seed`, also automatic when `npm run dev` finds a new database): workspace "Fortnight"; pages Getting started (all 13 block types incl. nested bullet, toggle child, image, inline database view), Projects → Fortnight app → Ideas; the **Calendar** database (Name, Date, Tags, Notes; views "Calendar" and "All events") with Team sync (timed), Conference (3-day all-day), Dentist (one-day all-day), Weekly review (weekly on Fridays, has a body) and Morning run (daily, COUNT=10). Ids are fixed and exported as `SEED_IDS` from `@fortnight/server` for e2e tests.
 - **Tests** (`tests/server`, `tests/contract`, run by `npm test` through the server's Vitest config): health and key flag; login with any name/password, cookie flags, same name → same user, empty name 400, session read, logout, re-login replaces the session, forged cookie; 401 on 17 protected/unknown routes and 404 with a session; error shapes for 400/413/415/malformed JSON; the API key never appears in any response body/header or in the config; migrations on an empty file DB and twice on the same DB; FTS5 works; seed twice leaves the DB byte-for-byte identical, is deterministic, keeps user edits, and every seeded block/property/view/date parses with the shared schemas; every exported schema has a fixture that round-trips through JSON (enforced by a coverage test), plus 26 must-reject cases; SSE events and all tool inputs round-trip; 1,000 random position inserts stay ordered; RRULE parser accepts the subset and rejects 13 bad rules; every implemented response parses with its contract schema.
 

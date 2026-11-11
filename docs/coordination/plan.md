@@ -1,8 +1,8 @@
 # Fortnight plan: Notion-like workspace with calendar and Claude agent
 
 - Author: Claude (`claude/notion-plan`)
-- Status: **User decisions D1–D5 made on 2026-11-11 (section 9).** Contract and remaining details are still a **proposal pending Codex review**. Nothing in the contract is agreed until both task records mark it accepted.
-- Codex input: `codex/notion-plan` was not on the remote when this was written (fetched 2026-11-11). Every section below is a proposal waiting on Codex's record. Where I expect Codex to have its own view, I say so and leave the decision open.
+- Status: **Accepted.** User decisions D1–D5 made on 2026-11-11 (section 9). Codex approved the plan and contract design v0.1 in commit `1c19a82` (`codex-task.md`), and Claude acknowledges it. This is the implementation baseline; executable contract v1 is established by M0's schemas and tests.
+- Codex input: Codex's answers to section 8 and its M0 precision items are recorded in `codex-task.md` and summarized in section 8 below.
 - Communication channel: Codex runs on a different machine. The only shared channel is Git: each agent pushes its own branch and record; the user relays prompts. Neither agent can see the other's conversation.
 
 ## 1. Goal and phases
@@ -398,12 +398,14 @@ Templates, export (Markdown/HTML/PDF) and share links, real-time collaboration (
 | Agent cost while experimenting | Fake-model mode for all automated tests; model and effort chosen per agent profile in the app; usage returned on every run |
 | Async coordination across machines | All decisions live in Git records; nothing depends on chat memory |
 
-## 8. Open questions for Codex
+## 8. Questions for Codex (answered in `1c19a82`)
 
-1. Editor library choice, and whether our block JSON format works for it.
-2. Do you want to own `tests/e2e` (proposed), or split it?
-3. Any objection to `src/shared` being kept by Claude with changes agreed in both records?
-4. Calendar UI: build it or use a library (for example FullCalendar)? Affects nothing in the contract.
+1. Editor: **Tiptap/ProseMirror** with custom nodes; our block JSON stays the storage format, converted by one adapter in `src/web` with round-trip tests.
+2. Tests: **Codex owns `tests/web/**` and `tests/e2e/**`.** Claude supplies deterministic seed data and fake-model mode.
+3. Shared contract: **accepted.** Claude keeps `src/shared/**`; every change needs both records.
+4. Calendar: **FullCalendar (React, standard plugins)** for month/week/day and drag/resize. Server expands recurrence.
+
+Precision items Claude will make explicit in M0 schemas (from Codex's record): `MockUser` and every request/response schema; a row-body ops response that is not a sidebar `Page`; deleted and touched blocks in ops responses; conflict error details; date range boundaries, all-day end semantics (exclusive vs inclusive), time zone and DST behavior for recurrence, and occurrence identity before M3; 401 handling that keeps health/session open. Codex handles autosave serialization, keeping dirty edits on failure, flushing before navigation, and not overwriting a dirty editor on refetch. Model IDs and provider parameters are verified against Anthropic's documentation when the agent is built.
 
 ## 9. User decisions (made 2026-11-11)
 
@@ -419,4 +421,5 @@ Templates, export (Markdown/HTML/PDF) and share links, real-time collaboration (
 | Version | Change | Status |
 |---|---|---|
 | v0 | Initial proposal (this document) | Pending Codex review |
-| v0.1 | Mock login routes and 401 guard; `agentKeyConfigured` in health; agent profiles and profile routes; recurrence accepted | User decisions applied; contract still pending Codex review |
+| v0.1 | Mock login routes and 401 guard; `agentKeyConfigured` in health; agent profiles and profile routes; recurrence accepted | **Accepted** by the user and by Codex (`1c19a82`); design baseline |
+| v1 | Executable schemas in `src/shared` with the precision items in section 8 | Planned in M0 on `claude/m0-scaffold` |

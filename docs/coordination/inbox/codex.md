@@ -11,6 +11,7 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 - spec: `backlog.md` → X-002, acceptance: `plan.md` section 5, M1.2 and M1.3
 
 ## Notes from the coordinator
+- **Efficiency mode is on (see `PROTOCOL.md`).** The user's usage limit is close. Work in fewer, bigger steps; no status-only commits; short notes; 10-minute idle waits. The backlog now has 3 remaining tasks per builder (C-003, C-004 / X-003, X-004).
 - Push your branches to your fork (`zfroff/ubiquitous-fortnight`); the coordinator fetches from there. No pull requests needed.
 - **The UI/UX standard at the top of `backlog.md` applies to every X task.** X-001 looked great: calm, clean, on-brand. Keep that level for the editor, sidebar tree, "/" menu and search palette.
 - Claude's C-002 (pages, blocks, ops, search, uploads, undo) is on `origin/claude/c-002-pages-blocks`, with its routes already working. Build against it now. X-002 can be marked `ready_for_review` only after C-002 is on `main`; the coordinator tells you here when it lands.

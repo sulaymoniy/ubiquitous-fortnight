@@ -45,32 +45,23 @@ The user wants a cool, clean interface. Every frontend task is reviewed against 
 - Needs: X-001, C-002.
 - Tiptap editor mapped to the shared block format through one adapter with round-trip tests. Everything in the M1.2 row. Autosave: per page, serialized, keeps dirty edits on failure or 401, flushes before navigation, never overwritten by a refetch. M1.3 Playwright scenario.
 
-## C-003: M2.1 databases, properties, rows, views, query
+## Merged tasks (efficiency mode)
+
+Remaining work is grouped into three tasks per builder. Acceptance checks are the listed `plan.md` milestone rows; integration e2e rows (M2.3, M3.3) belong to the X task.
+
+## C-003: M2.1 + M3.1 databases, properties, rows, views, query, calendar API and recurrence
 - Needs: C-002.
 
-## X-003: M2.2 table, board, list, gallery views, plus M2.3 e2e
+## X-003: M2.2 + M3.2 table, board, list, gallery views and calendar (FullCalendar), with M2.3 + M3.3 e2e
 - Needs: X-002, C-003.
 
-## C-004: M3.1 calendar API and recurrence
+## C-004: M4.1 agent backend + production build and README
 - Needs: C-003.
+- Profiles, routes, tool loop with SSE, changeset per tool call, run undo, inline AI, fake-model mode (`AGENT_FAKE=1`) with scripted turns for the three example prompts. No real API calls. Check model IDs and request parameters against Anthropic's current SDK docs before writing the client code.
+- `npm run build && npm start` serves the built web app and API on one port. Root `README.md`: setup, `.env`, dev, seed, tests, mock login, agent profiles.
 
-## X-004: M3.2 calendar views (FullCalendar), plus M3.3 e2e
+## X-004: M4.2 agent panel, profile picker, inline /ai, e2e with the fake model, final polish and full e2e on the production build
 - Needs: X-003, C-004.
 
-## C-005: M4.1 agent backend
-- Needs: C-004.
-- Profiles, routes, the tool loop with SSE, a changeset per tool call, run undo, inline AI, and a fake-model mode (`AGENT_FAKE=1`) with scripted turns for the three example prompts. No real API calls in tests or during development. Check model IDs and request parameters against Anthropic's current SDK docs before writing the client code.
-
-## X-005: M4.2 agent panel, profile picker, inline /ai, plus e2e with the fake model
-- Needs: X-004, C-005.
-
-## C-006: Production build and docs
-- Needs: C-005, X-005.
-- `npm run build && npm start` serves the built web app and API on one port. Root `README.md` covering setup, `.env`, dev, seed, tests, and the mock-login and agent-profile notes.
-
-## X-006: Final UI polish and full e2e pass
-- Needs: C-006.
-- Fix rough edges found across phases. Full Playwright suite green against the production build.
-
 ## F-001: Final integration (coordinator)
-- Clean clone, install, build, run every check, smoke-test in a browser, tag `v0.1.0`. Real-model evaluation (M4.3) only if the user approves the cost.
+- Clean clone, install, build, all checks, browser smoke test, tag `v0.1.0`. Real-model evaluation (M4.3) only if the user approves the cost.

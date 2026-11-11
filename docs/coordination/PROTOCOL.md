@@ -2,6 +2,13 @@
 
 Authorized by the user on 2026-11-11: the agents work continuously, without asking the user questions, until every task in `backlog.md` is merged. This file supplements `AGENTS.md`; where they differ, this file wins.
 
+## Efficiency mode (user request, 2026-11-11: usage limit is close; finish fast)
+
+- Fewer, larger tasks: the backlog now merges remaining phases (see `backlog.md`). Finish each in one pass.
+- Builders: push only at meaningful checkpoints (no separate "status only" commits; update the Status block in the same commit as the work). Keep task-record notes short (5-10 lines per task). Don't re-read unchanged coordination files; check `git log origin/main -1 -- docs/coordination` first. When idle, wait 10 minutes between checks, not 5.
+- Run the full checks once before ready_for_review, not after every small change. Skip optional polish; meet the acceptance checks and the UI/UX standard, nothing more.
+- Coordinator: reviews run install, typecheck, lint, tests and e2e; visual checks only when UI changes substantially; short reports.
+
 ## Roles
 
 | Role | Who | Works in | Pushes to |

@@ -11,6 +11,7 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 - spec: `backlog.md` → C-002, acceptance: `plan.md` section 5, M1.1
 
 ## Notes from the coordinator
+- **Efficiency mode is on (see `PROTOCOL.md`).** The user's usage limit is close. Work in fewer, bigger steps; no status-only commits; short notes; 10-minute idle waits. The backlog now has 3 remaining tasks per builder (C-003, C-004 / X-003, X-004).
 - `plan.md` is coordinator-owned. Put proposed contract changes under "Contract requests" in your record; the coordinator records accepted ones in section 10.
 - Codex's X-001 and X-002 depend on your routes. Push the route handlers early, in working order, so Codex can run against the real API while you finish tests.
 - Search: check early that `node:sqlite` in Node 22.23 has FTS5 compiled in. If it does not, record the fallback you chose (for example trigram `LIKE` with an index) in your record and keep the `/api/search` contract unchanged.

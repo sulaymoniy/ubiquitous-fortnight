@@ -5,9 +5,9 @@
 - revision: 1
 - state: ready_for_review
 - branch: claude/c-002-pages-blocks
-- commit: 29845f042c763b09926bbeaa1e54edfe5692825e
-- updated: 2026-11-11T17:39:52+05:00
-- note: C-002 complete on top of main `8e65ad0`: workspace, pages, page ops, archive/restore, FTS5 search, uploads, changesets and undo, Markdown <-> blocks converter. 319 tests pass; clean `npm ci` in a fresh clone still compiles nothing.
+- commit: 0b5d310383814330a93cb6e155ffa5e52c700955
+- updated: 2026-11-11T17:46:06+05:00
+- note: C-002 complete and rebased onto main `6f04bb4` (X-001 merged, Windows lockfile). Lockfile diff limited to my packages. Server 319 + web 12 tests, typecheck, lint, format and e2e (2) pass.
 
 ## Role and ownership (accepted by the user and Codex)
 
@@ -64,6 +64,11 @@
 - Worktree: `npm run typecheck` pass, `npm run lint` pass, `npm test` **12 files, 319 tests passed**, `npm run format:check` pass, `git diff --check` clean.
 - Fresh clone from GitHub at `29845f0`: `npm ci` exit 0 ("added 218 packages", no gyp step, no build tools on this machine), typecheck pass, lint pass, 319 tests pass.
 - Live (`DATA_DIR=<tmp> PORT=3019 npm run dev`, then curl): seeded pages listed; created a page; ops inserted a paragraph; search found it at once with snippet and block id; PNG upload 200 and `GET /uploads/:id` 200 `image/png`; undoing the ops changeset made search stop finding the word.
+
+### Rebase onto main `6f04bb4` (after X-001 merge)
+
+- Rebased all C-002 commits onto `origin/main` `6f04bb4`. The only conflict was `package-lock.json`: resolved by taking main's lockfile (the Windows regeneration from `32c466e`) and running `npm install`. The resulting lockfile diff against main is limited to my packages: `src/server` dependency list, plus new `@fastify/multipart@10.1.8`, `@fastify/busboy@3.2.5` (its dependency) and `marked@18.2.0`. No entries were dropped (checked by comparing every `packages` entry with main's lockfile).
+- Checks after the rebase, on `0b5d310`: `npm run typecheck` pass (server, shared, web); `npm run lint` pass (server, shared, web); `npm test`: server 12 files / 319 tests pass, web 2 files / 12 tests pass; `npm run format:check` pass; `git diff --check origin/main HEAD` clean; `npm run e2e` (Codex's Playwright suite against the real server): 2 passed.
 
 ### Known limitations
 

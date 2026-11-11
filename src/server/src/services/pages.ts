@@ -7,7 +7,7 @@ import {
 } from '@fortnight/shared';
 import { and, asc, eq, inArray, isNull, ne, sql } from 'drizzle-orm';
 import type { AppDatabase } from '../db/client.ts';
-import { blocks, pages } from '../db/schema.ts';
+import { blocks, databases, pages } from '../db/schema.ts';
 import { AppError } from '../http/errors.ts';
 import { newId, nowIso } from '../ids.ts';
 import { ChangeRecorder, inTransaction } from '../store/changes.ts';
@@ -177,6 +177,13 @@ export function updatePage(db: AppDatabase, id: string, body: UpdatePageRequest)
       .set({ ...patch, version: page.version + 1, updatedAt: nowIso() })
       .where(eq(pages.id, id))
       .run();
+    if (page.kind === 'database' && page.databaseId && body.title !== undefined) {
+      rec.touch('database', page.databaseId);
+      db.update(databases)
+        .set({ title: body.title, updatedAt: nowIso() })
+        .where(eq(databases.id, page.databaseId))
+        .run();
+    }
     reindexPages(db, [id]);
     const label = moving || body.position !== undefined ? 'Move page' : 'Edit page';
     rec.commit({ ...SOURCE_USER, label });

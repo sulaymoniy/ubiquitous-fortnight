@@ -1,13 +1,13 @@
 # Claude task
 
 ## Status
-- task: C-002
+- task: C-003
 - revision: 1
-- state: ready_for_review
-- branch: claude/c-002-pages-blocks
-- commit: 0b5d310383814330a93cb6e155ffa5e52c700955
-- updated: 2026-11-11T17:46:06+05:00
-- note: C-002 complete and rebased onto main `6f04bb4` (X-001 merged, Windows lockfile). Lockfile diff limited to my packages. Server 319 + web 12 tests, typecheck, lint, format and e2e (2) pass.
+- state: working
+- branch: claude/c-003-databases-calendar
+- commit: -
+- updated: 2026-11-11T17:54:12+05:00
+- note: All C-003 routes work and are pushed for Codex (databases, properties, rows incl. row body ops, views, query with filters/sorts, calendar events with recurrence). Adding core-logic tests (filters, recurrence/DST), then ready.
 
 ## Role and ownership (accepted by the user and Codex)
 

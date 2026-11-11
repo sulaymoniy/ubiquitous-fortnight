@@ -6,8 +6,8 @@
 - state: ready_for_review
 - branch: claude/c-004-agent-build
 - commit: head of the branch (status is in the same commit as the work, per efficiency mode)
-- updated: 2026-11-11T18:19:36+05:00
-- note: C-004 done: agent backend (profiles, conversations, SSE tool loop with 19 tools, one changeset per tool call, run undo, cancel, inline AI, AGENT_FAKE=1), `npm run build && npm start` on one port, root README. Server 360 + web 12 tests pass.
+- updated: 2026-11-11T18:22:05+05:00
+- note: C-004 done (rebased on main `3a36334` with X-002): agent backend (profiles, conversations, SSE tool loop with 19 tools, one changeset per tool call, run undo, cancel, inline AI, AGENT_FAKE=1), `npm run build && npm start` on one port, root README. Server 360 + web 31 tests pass; clean `npm ci` checked.
 
 ## Role and ownership (accepted by the user and Codex)
 

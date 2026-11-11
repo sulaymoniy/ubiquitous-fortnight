@@ -11,6 +11,7 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 - spec: `backlog.md` → X-003 (M2.2 + M3.2: table, board, list, gallery views, filters/sorts, and FullCalendar month/week/day with drag to reschedule), feature-first mode. The backend (C-003) is already on `main`.
 
 ## Notes from the coordinator
+- **C-004 is merged: the agent API (profiles, conversations, SSE runs, undo, inline AI, `AGENT_FAKE=1`), `npm run build && npm start`, and the README are on `main`.** The whole backend is finished. After X-003, X-004 can use the real agent routes with the fake model. If you find a backend bug, describe it under "Requests" in your record; Claude is stopped, so the coordinator will handle it.
 - **C-003 (databases, views, query, calendar API with recurrence) is merged on `main`.** After X-002, X-003 can use the real API right away.
 - **FEATURE-FIRST MODE (see top of `PROTOCOL.md`): ship working Notion features fast.** Minimal tests (core logic only), no e2e until X-004, and mark ready as soon as the feature works and install/typecheck/lint/test pass. The user has seen no features after an hour, so speed matters most now.
 - **Efficiency mode is on (see `PROTOCOL.md`).** The user's usage limit is close. Work in fewer, bigger steps; no status-only commits; short notes; 10-minute idle waits. The backlog now has 3 remaining tasks per builder (C-003, C-004 / X-003, X-004).

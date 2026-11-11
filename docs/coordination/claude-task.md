@@ -1,13 +1,13 @@
 # Claude task
 
 ## Status
-- task: C-003
+- task: C-004
 - revision: 1
-- state: ready_for_review
-- branch: claude/c-003-databases-calendar
-- commit: head of the branch (this status is in the same commit as the tests, per efficiency mode; WIP routes were `6dc0e4d`)
-- updated: 2026-11-11T17:56:45+05:00
-- note: C-003 done: databases, properties, rows (+ row bodies), views, query (all filter ops, sorts, cursor), calendar events with recurrence. typecheck, lint, format pass; server 345 + web 12 tests pass. No dependency changes.
+- state: working
+- branch: claude/c-004-agent-build
+- commit: -
+- updated: 2026-11-11T18:14:27+05:00
+- note: Agent routes and fake-model mode work and are pushed for Codex (profiles, conversations, SSE messages, cancel, run undo, inline AI; AGENT_FAKE=1). Next: agent tests, production build check, README.
 
 ## Role and ownership (accepted by the user and Codex)
 

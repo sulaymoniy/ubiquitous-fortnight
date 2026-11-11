@@ -12,6 +12,7 @@
   "scripts": {
     "dev": "node scripts/run-parallel.mjs dev",
     "build": "npm run build --workspaces --if-present",
+    "start": "npm run start -w @fortnight/server",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",

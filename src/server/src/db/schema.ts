@@ -154,6 +154,8 @@ export const agentConversations = sqliteTable('agent_conversations', {
   id: text().primaryKey(),
   title: text().notNull().default(''),
   profileId: text().notNull(),
+  /** Exact Messages API history (assistant content replayed unchanged, incl. thinking blocks). */
+  apiMessages: text({ mode: 'json' }).$type<unknown[]>().notNull().default([]),
   ...timestamps,
 });
 

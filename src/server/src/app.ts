@@ -63,7 +63,6 @@ export async function buildApp(options: BuildAppOptions) {
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
   app.setErrorHandler(errorHandler);
-  app.setNotFoundHandler(notFoundHandler);
   app.decorateRequest('user', null);
   // The API speaks JSON, plus multipart for POST /api/uploads; anything else is 415.
   app.removeContentTypeParser('text/plain');
@@ -93,18 +92,18 @@ export async function buildApp(options: BuildAppOptions) {
   await app.register(agentRoutes(ctx), { prefix: '/api' });
 
   // Production: serve the built web app on the same port, with SPA fallback for client routes.
-  const indexHtml = path.join(options.config.webDist, 'index.html');
-  if (existsSync(indexHtml)) {
+  const serveWeb = existsSync(path.join(options.config.webDist, 'index.html'));
+  if (serveWeb) {
     await app.register(fastifyStatic, { root: options.config.webDist, wildcard: false });
-    app.setNotFoundHandler((request, reply) => {
-      const p = request.url.split('?')[0] ?? '';
-      const isApi = p === '/api' || p.startsWith('/api/') || p.startsWith('/uploads/');
-      if (request.method === 'GET' && !isApi && !path.extname(p)) {
-        return reply.type('text/html').sendFile('index.html');
-      }
-      return notFoundHandler(request, reply);
-    });
   }
+  app.setNotFoundHandler((request, reply) => {
+    const p = request.url.split('?')[0] ?? '';
+    const isApi = p === '/api' || p.startsWith('/api/') || p.startsWith('/uploads/');
+    if (serveWeb && request.method === 'GET' && !isApi && !path.extname(p)) {
+      return reply.type('text/html').sendFile('index.html');
+    }
+    return notFoundHandler(request, reply);
+  });
   await app.register(uploadRoutes(ctx));
 
   return app;

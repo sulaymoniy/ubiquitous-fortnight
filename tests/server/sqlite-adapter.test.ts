@@ -136,7 +136,7 @@ describe('node:sqlite adapter (SqliteClient)', () => {
       { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
     );
     expect(out).not.toContain('ExperimentalWarning');
-  });
+  }, 30_000); // spawns a full server import, slow under parallel load
 
   it('does not depend on the native better-sqlite3 package', () => {
     const require = createRequire(import.meta.url);

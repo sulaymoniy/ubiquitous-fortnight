@@ -1,0 +1,33 @@
+{
+  "name": "@fortnight/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "cd ../.. && eslint src/web tests/web tests/e2e && prettier --check --ignore-path .prettierignore src/web tests/web tests/e2e",
+    "test": "vitest run --config vitest.config.ts",
+    "e2e": "playwright test --config ../../tests/e2e/playwright.config.ts"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "5.80.7",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "zustand": "5.0.5",
+    "@fontsource/inter": "5.3.0",
+    "lucide-react": "1.72.0",
+    "@fortnight/shared": "*"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/user-event": "14.6.1",
+    "@types/react": "19.1.6",
+    "@types/react-dom": "19.1.6",
+    "@vitejs/plugin-react": "6.3.0",
+    "jsdom": "26.1.0"
+  }
+}

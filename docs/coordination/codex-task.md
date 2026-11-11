@@ -5,7 +5,7 @@
 - branch: codex/x-001-m0-web
 - commit: -
 - updated: 2026-11-11T12:32:00Z
-- note: Rebased on merged C-001; root install/typecheck/lint/287 tests and 2 real-API browser tests pass. Verifying fresh-checkout npm ci before ready_for_review.
+- note: All root checks, production build, fresh-checkout npm ci, 287 tests and 2 real-API browser tests pass; preparing review SHA.
 
 # Codex task record
 
@@ -36,7 +36,7 @@ Frontend builder: `src/web/**`, `tests/web/**`, `tests/e2e/**`, this record, and
 - Root `npm run lint`: pass (ESLint + shared Prettier checks).
 - Root `npm test`: 287 tests pass (275 server/contract + 12 web/client).
 - Root `npm run e2e`: 2 tests pass against the real API.
-- Frontend production build passed before root integration; final root build and fresh-checkout npm ci are the remaining validation steps.
+- Root npm run build: pass after workspace integration. Fresh temporary clone at ea0f26a: npm ci passed in 19 seconds with no native build tools, followed by passing root typecheck, lint, all 287 tests, and both real-API Playwright tests.
 - Earlier visual smoke with mocked API: inspected desktop login/shell and 768px tablet screenshots; no overflow at 1440/1024/768/390px and no page errors. This supplements the real API browser tests.
 - No paid API calls, .env/data commits, main merges, or pull requests.
 
@@ -44,7 +44,7 @@ Frontend builder: `src/web/**`, `tests/web/**`, `tests/e2e/**`, this record, and
 - Avatar colors are named values in contract v1. The M0 shell retains the server color as data while rendering avatars with the single neutral/accent theme.
 - Only M0 features are active. Page tree/editor, databases, calendar and agent interactions follow their assigned future tasks.
 - Browser installation: `npx playwright install chromium` is needed once on a clean machine.
-- No contract requests or known X-001 functional blockers remain; final readiness awaits clean-install verification.
+- No contract requests or known X-001 functional blockers remain. Fresh-install validation is complete.
 - Moderate development-tool audit advisories remain in the shared toolchain; no force-upgrade of coordinator-owned tooling was attempted.
 
 ## Contract v1
@@ -52,4 +52,3 @@ Frontend builder: `src/web/**`, `tests/web/**`, `tests/e2e/**`, this record, and
 
 ## Prior planning agreement
 Plan and ownership split approved in `1c19a82`: Claude owns backend/storage/contract/agent; Codex owns frontend/web/e2e. Frontend decisions remain React/Vite/TypeScript, Tiptap/ProseMirror with a block-format adapter and round-trip tests, FullCalendar standard React views, TanStack Query, Zustand and dnd-kit. Shared changes go through the coordinator; nothing assumes access to the other agent's chat.
-

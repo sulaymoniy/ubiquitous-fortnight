@@ -88,12 +88,14 @@ describe('migrations', () => {
     const db = openDatabase(':memory:');
     runMigrations(db);
     db.$client
-      .prepare('INSERT INTO search_index (entity_id, kind, title, body) VALUES (?, ?, ?, ?)')
-      .run('p1', 'page', 'Café notes', 'quarterly planning');
+      .prepare(
+        'INSERT INTO search_index (page_id, block_id, kind, database_id, title, body) VALUES (?, ?, ?, ?, ?, ?)',
+      )
+      .run('p1', null, 'page', null, 'Café notes', 'quarterly planning');
     const hit = db.$client
-      .prepare("SELECT entity_id FROM search_index WHERE search_index MATCH 'cafe'")
+      .prepare("SELECT page_id FROM search_index WHERE search_index MATCH 'cafe'")
       .all();
-    expect(hit).toEqual([{ entity_id: 'p1' }]);
+    expect(hit).toEqual([{ page_id: 'p1' }]);
     db.$client.close();
   });
 });

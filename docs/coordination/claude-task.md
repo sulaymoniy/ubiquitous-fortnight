@@ -1,13 +1,13 @@
 # Claude task
 
 ## Status
-- task: C-001
-- revision: 2
-- state: ready_for_review
-- branch: claude/c-001-m0-scaffold
-- commit: 2bf33f54f2167e7ae0b02e253e5c904245b18550
-- updated: 2026-11-11T17:19:04+05:00
-- note: Review fixes done on top of main `6173a9c`. (1) Clean `npm ci` now works on Windows with no build tools: the server uses Node's built-in `node:sqlite` instead of better-sqlite3; proof below. (2) Status times now come from `date -Iseconds`. 275 tests pass.
+- task: C-002
+- revision: 1
+- state: working
+- branch: claude/c-002-pages-blocks
+- commit: -
+- updated: 2026-11-11T17:30:59+05:00
+- note: Work in progress. Routes working and pushed for Codex: workspace GET/PATCH, pages list/create/get/patch/archive/restore, page ops, search, uploads (+ GET /uploads/:id), changesets list and undo. Still to do: Markdown converter, remaining M1.1 tests (ops, search, uploads, undo, 1,000 inserts).
 
 ## Role and ownership (accepted by the user and Codex)
 

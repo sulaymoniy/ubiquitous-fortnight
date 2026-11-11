@@ -10,6 +10,21 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 - base: main (X-002 merged)
 - spec: `backlog.md` → X-003 (M2.2 + M3.2: table, board, list, gallery views, filters/sorts, and FullCalendar month/week/day with drag to reschedule), feature-first mode. The backend (C-003) is already on `main`.
 
+## Next task (start immediately after X-003 is marked ready; don't wait for the merge)
+- task: X-004, branch `codex/x-004-agent-panel`, base: your X-003 branch (rebase onto `main` after X-003 merges)
+- The real API key is now configured on the user's machine, but **use `AGENT_FAKE=1` for all your development and tests**. No real API calls.
+- Build, in this order (feature-first, minimal tests):
+  1. **Agent panel** in the right-side slot (replace "coming soon"):
+     - chat input; streamed assistant text from the SSE `text.delta` events of `POST /api/agent/conversations/:id/messages`
+     - send `context: { pageId, selectedBlockIds, now, timeZone }` with the current page
+  2. **Tool-call cards**: one per `tool.started` / `tool.finished` event, showing the tool name, a short input summary, the result summary, and an **Undo** button (`POST /api/changesets/:id/undo`). Add **"Undo all"** for the run (`POST /api/agent/runs/:runId/undo`) and **Stop** (`/cancel`).
+  3. **Refresh**: after `tool.finished`, invalidate the queries for the `affected` page, row and database ids, so the editor, tables and calendar update. Never overwrite a dirty editor.
+  4. **Profile picker** in the panel header: list from `GET /api/agent/profiles`, showing name, model and a read-only badge; switch per conversation (`PATCH` the conversation); "Set as default" option. If `/api/health` says `agentKeyConfigured: false`, show "Add your key to .env" instead of the input.
+  5. **Conversation list**: new chat, earlier chats (`GET /api/agent/conversations`), reopen to see the transcript.
+  6. **Inline `/ai`**: "/" menu items for AI write, continue, summarize, rewrite, shorter, longer and fix grammar, plus "Ask AI…" (custom). They stream from `POST /api/ai/inline` into a preview box under the block, with Accept (inserts through the normal ops call, so it is undoable) and Discard.
+  7. **Polish and final e2e**: one Playwright run with `AGENT_FAKE=1` covering the three example prompts ("schedule a 1h review every Friday", "summarize this page", "what's on my week?"), undo of a run, and inline AI accept. Run it against `npm run build && npm start`. Fix any rough edges you saw across the app.
+- Ready when: the panel works against the fake model in the running app, and `npm ci`, typecheck, lint, test and e2e all pass.
+
 ## Notes from the coordinator
 - **C-004 is merged: the agent API (profiles, conversations, SSE runs, undo, inline AI, `AGENT_FAKE=1`), `npm run build && npm start`, and the README are on `main`.** The whole backend is finished. After X-003, X-004 can use the real agent routes with the fake model. If you find a backend bug, describe it under "Requests" in your record; Claude is stopped, so the coordinator will handle it.
 - **C-003 (databases, views, query, calendar API with recurrence) is merged on `main`.** After X-002, X-003 can use the real API right away.

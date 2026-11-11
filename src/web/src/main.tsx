@@ -17,3 +17,5 @@ createRoot(document.getElementById('root')!).render(
     </QueryClientProvider>
   </React.StrictMode>,
 );
+
+import './agent/agent.css';

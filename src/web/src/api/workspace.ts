@@ -37,15 +37,15 @@ export const workspaceApi = {
     request('/pages/' + id(pageId) + '/archive', ArchivePageResponse, { method: 'POST' }),
   restore: (pageId: string) =>
     request('/pages/' + id(pageId) + '/restore', ArchivePageResponse, { method: 'POST' }),
-  ops: (pageId: string, ops: OpsRequest['ops']) =>
+  ops: (pageId: string, ops: OpsRequest['ops'], label?: string) =>
     request('/pages/' + id(pageId) + '/ops', PageOpsResponse, {
       method: 'POST',
-      body: JSON.stringify(OpsRequest.parse({ ops })),
+      body: JSON.stringify(OpsRequest.parse({ ops, label })),
     }),
-  rowOps: (rowId: string, ops: OpsRequest['ops']) =>
+  rowOps: (rowId: string, ops: OpsRequest['ops'], label?: string) =>
     request('/rows/' + id(rowId) + '/ops', RowOpsResponse, {
       method: 'POST',
-      body: JSON.stringify(OpsRequest.parse({ ops })),
+      body: JSON.stringify(OpsRequest.parse({ ops, label })),
     }),
   search: (query: string, signal?: AbortSignal) =>
     request('/search?q=' + id(query) + '&limit=20', SearchResponse, { signal }),

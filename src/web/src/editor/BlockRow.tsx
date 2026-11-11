@@ -1,3 +1,4 @@
+import { InlineAI } from '../agent/InlineAI';
 import { useEffect, useRef, useState } from 'react';
 import { EditorContent, useEditor, type Editor } from '@tiptap/react';
 import { createEditorExtensions } from './extensions';
@@ -30,6 +31,7 @@ import type { PageSession } from './session';
 import { workspaceApi } from '../api/workspace';
 
 export const COMMANDS = [
+  { type: 'ai', label: 'Ask AI…', hint: 'Write or improve with AI' },
   { type: 'paragraph', label: 'Paragraph', hint: 'Plain text' },
   { type: 'heading_1', label: 'Heading 1', hint: 'Large heading' },
   { type: 'heading_2', label: 'Heading 2', hint: 'Medium heading' },
@@ -221,6 +223,7 @@ export function BlockRow({
   index: number;
 }) {
   const [query, setQuery] = useState<string | null>(null);
+  const [aiOpen, setAiOpen] = useState(false);
   const [choice, setChoice] = useState(0);
   const [open, setOpen] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -238,7 +241,8 @@ export function BlockRow({
   }
   function change(rich: RichText[]) {
     const value = rich.map((r) => r.text).join('');
-    const shortcuts: Record<string, (typeof COMMANDS)[number]['type']> = {
+    if (value === '/ai') { session.setBlock(withRich(current(), [])); setQuery(null); setAiOpen(true); return; }
+    const shortcuts: Record<string, Exclude<(typeof COMMANDS)[number]['type'], 'ai'>> = {
       '# ': 'heading_1',
       '## ': 'heading_2',
       '### ': 'heading_3',
@@ -264,6 +268,7 @@ export function BlockRow({
   }
   function pick(type: (typeof COMMANDS)[number]['type']) {
     setQuery(null);
+    if (type === 'ai') { session.setBlock(withRich(current(), [])); setAiOpen(true); return; }
     if (type === 'image') {
       session.setBlock(withRich(current(), []));
       fileInput.current?.click();
@@ -511,7 +516,7 @@ export function BlockRow({
           aria-label="Choose image"
           onChange={(e) => void upload([...(e.target.files ?? [])])}
         />
-        <div className="block-actions">
+        <div className="block-actions"><button aria-label="Ask AI for this block" onClick={() => setAiOpen(true)}>AI</button>
           <button aria-label="Upload image" onClick={() => fileInput.current?.click()}>
             <ImagePlus size={13} />
           </button>
@@ -525,6 +530,7 @@ export function BlockRow({
             <Trash2 size={13} />
           </button>
         </div>
+        {aiOpen && <InlineAI block={block} session={session} close={() => setAiOpen(false)} />}
         {query !== null && (
           <div className="slash-menu" role="listbox" aria-label="Block types">
             {commands.map((command, i) => (

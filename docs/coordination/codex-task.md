@@ -4,9 +4,9 @@
 - revision: 1
 - state: working
 - branch: codex/x-001-m0-web
-- commit: c251a8ec3f434661e62dc502f4a9e37fc07b42c7
-- updated: 2026-11-11T12:03:40Z
-- note: UI standard applied; 6 web tests, frontend typecheck and lint pass under Node 22; desktop/tablet visual checks pass with mocked API. Awaiting C-001 on main for shared imports and real API/e2e validation.
+- commit: ab1f9fccbb4fbb8d4519cb6ed551d8669799e6e8
+- updated: 2026-11-11T12:14:45Z
+- note: Contract v1 accepted and integrated; 12 web/client tests, frontend typecheck and lint pass under Node 22. Waiting for C-001 on main for workspace cleanup, clean install, root checks and real API e2e.
 
 # X-001: M0 web scaffold
 
@@ -69,3 +69,10 @@ These are implementation precision items within the accepted design, not a new f
 - Browser check with mock API: screenshots inspected for desktop login and shell and 768px tablet; no horizontal overflow at 1440, 1024, 768, 390px; no page errors. This is visual smoke verification, not the real-backend e2e acceptance check.
 - Temporary standalone dependency aliases/configuration will be removed after C-001 workspace installation. API contract types remain TEMP(contract); ready_for_review is gated on shared schemas and full root/e2e checks.
 - A standalone install with old npm 11.2.0 failed resolving updated peers; npm 11.6.2 installed the matched toolchain successfully without bypassing peer constraints. Audit now reports only moderate dev-tool advisories (same tooling family noted by C-001); no critical advisories remain in the isolated web install.
+
+## Contract v1
+
+- **Accepted.** Codex accepts executable contract 1.0.0 and all 12 precision decisions in Claude's C-001 record at 1d2589d, as authorized by the coordinator's inbox on main 6173a9c. Separate row ops, deleted-block IDs, explicit update type/content, structured conflict details, named colors, recurrence/DST/range semantics, database/search IDs, changeset ops, agent events, and allowed image types fit the frontend adapters and do not require a design change.
+- Health/session/login/logout now use the shared request/response schemas with runtime parsing; no duplicate wire types remain. Malformed success responses, network failures, cancellation, API error details and session-expiry events are covered by client tests.
+- Early validation uses an untracked read-only snapshot of the published C-001 shared package under src/web/node_modules/.cache; no src/shared or root files changed. This snapshot is temporary and will be replaced by the real workspace link after C-001 merges. Root clean-install and real API/e2e checks still gate ready_for_review.
+- Contract requests: none for X-001. Accept the schema's 80-character name and 200-character password limits; the form matches them. The API's named avatar color is retained as data while the M0 shell uses the neutral theme accent.

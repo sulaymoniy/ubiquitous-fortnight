@@ -9,7 +9,7 @@ const user = {
   id: "demo-jamie",
   name: "Jamie",
   initials: "J",
-  color: "#687b59",
+  color: "green",
 };
 const health = {
   ok: true,
@@ -52,7 +52,7 @@ beforeEach(() => {
       return signedIn
         ? response({ user })
         : response(
-            { error: { code: "UNAUTHORIZED", message: "Sign in first" } },
+            { error: { code: "unauthorized", message: "Sign in first" } },
             401,
           );
     }),
@@ -123,7 +123,9 @@ describe("workspace session", () => {
     await actor.type(await screen.findByLabelText("Your name"), "Jamie");
     vi.mocked(fetch).mockResolvedValueOnce(
       response(
-        { error: { code: "FAIL", message: "Please try again later" } },
+        {
+          error: { code: "internal_error", message: "Please try again later" },
+        },
         500,
       ),
     );

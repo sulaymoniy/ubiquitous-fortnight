@@ -1,63 +1,94 @@
-import type { HealthResponse, LoginRequest, SessionResponse } from "./contract";
+import {
+  ApiError as ApiErrorSchema,
+  HealthResponse,
+  LoginRequest,
+  LogoutResponse,
+  SessionResponse,
+} from "@fortnight/shared";
+
 export class ApiError extends Error {
   status: number;
   code: string;
-  constructor(status: number, code: string, message: string) {
+  details: unknown;
+  constructor(
+    status: number,
+    code: string,
+    message: string,
+    details?: unknown,
+  ) {
     super(message);
+    this.name = "ApiError";
     this.status = status;
     this.code = code;
-    this.name = "ApiError";
+    this.details = details;
   }
 }
 export const unauthorizedEvent = "fortnight:unauthorized";
+interface ResponseSchema<T> {
+  parse: (input: unknown) => T;
+}
+
 export async function request<T>(
   path: string,
+  schema: ResponseSchema<T>,
   options: RequestInit = {},
 ): Promise<T> {
-  const response = await fetch("/api" + path, {
-    ...options,
-    credentials: "same-origin",
-    headers: {
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
-      ...options.headers,
-    },
-  });
+  const headers = new Headers(options.headers);
+  if (typeof options.body === "string" && !headers.has("Content-Type"))
+    headers.set("Content-Type", "application/json");
+  let response: Response;
+  try {
+    response = await fetch("/api" + path, {
+      ...options,
+      headers,
+      credentials: "same-origin",
+    });
+  } catch (error) {
+    if (error instanceof TypeError)
+      throw new ApiError(
+        0,
+        "network_error",
+        "Could not connect to your workspace. Check your connection and try again.",
+      );
+    throw error;
+  }
   const payload: unknown = await response.json().catch(() => null);
   if (!response.ok) {
     if (response.status === 401)
       window.dispatchEvent(new Event(unauthorizedEvent));
-    const error =
-      payload && typeof payload === "object" && "error" in payload
-        ? payload.error
-        : null;
-    const message =
-      error &&
-      typeof error === "object" &&
-      "message" in error &&
-      typeof error.message === "string"
-        ? error.message
-        : "The request could not be completed. Please try again.";
-    const code =
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      typeof error.code === "string"
-        ? error.code
-        : "REQUEST_FAILED";
-    throw new ApiError(response.status, code, message);
+    const parsed = ApiErrorSchema.safeParse(payload);
+    if (parsed.success)
+      throw new ApiError(
+        response.status,
+        parsed.data.error.code,
+        parsed.data.error.message,
+        parsed.data.error.details,
+      );
+    throw new ApiError(
+      response.status,
+      "request_failed",
+      "The request could not be completed. Please try again.",
+    );
   }
-  return payload as T;
+  try {
+    return schema.parse(payload);
+  } catch {
+    throw new ApiError(
+      502,
+      "invalid_response",
+      "The workspace sent an unexpected response. Refresh and try again.",
+    );
+  }
 }
 export const api = {
   health: (signal?: AbortSignal) =>
-    request<HealthResponse>("/health", { signal }),
+    request("/health", HealthResponse, { signal }),
   session: (signal?: AbortSignal) =>
-    request<SessionResponse>("/session", { signal }),
+    request("/session", SessionResponse, { signal }),
   login: (body: LoginRequest) =>
-    request<SessionResponse>("/session", {
+    request("/session", SessionResponse, {
       method: "POST",
-      body: JSON.stringify(body),
+      body: JSON.stringify(LoginRequest.parse(body)),
     }),
-  logout: () =>
-    request<Record<string, never>>("/session", { method: "DELETE" }),
+  logout: () => request("/session", LogoutResponse, { method: "DELETE" }),
 };

@@ -15,7 +15,7 @@ import {
   FileText,
 } from "lucide-react";
 import { api, ApiError, unauthorizedEvent } from "./api/client";
-import type { MockUser, SessionResponse } from "./api/contract";
+import type { MockUser, SessionResponse } from "@fortnight/shared";
 import { useShell } from "./store";
 
 function Mark() {
@@ -179,7 +179,7 @@ function Shell({ user }: { user: MockUser }) {
         </div>
         <div className="sidebar-bottom">
           <div className="user-profile">
-            <span className="avatar" style={{ borderColor: user.color }}>
+            <span className="avatar" data-color={user.color}>
               {user.initials}
             </span>
             <div>

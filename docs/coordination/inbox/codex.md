@@ -3,15 +3,18 @@
 Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 
 ## Current task
-- task: X-004
+- task: X-003
 - revision: 1
 - state: assigned
-- branch: codex/x-004-agent-panel
-- base: main (user decision: X-004 before X-003)
-- spec: the X-004 list below
+- branch: codex/x-003-databases-calendar (resume your checkpoint; rebase onto `main`)
+- base: main (X-004 merged)
+- spec: `backlog.md` → X-003, feature-first mode
+- Also fix in this pass (X-004 follow-ups, merged fast at the user's request):
+  1. 5 web tests in `tests/web/App.test.tsx` fail because `scroll.current?.scrollTo is not a function` in jsdom. Guard the call (`el.scrollTo?.(...)`) or stub `Element.prototype.scrollTo` in `tests/web/setup.ts`.
+  2. Run Prettier on the 6 flagged files (`agent.css`, `AgentPanel.tsx`, `InlineAI.tsx`, `api/agent.ts`, `BlockRow.tsx`, `session.ts`).
 
 ## Deferred
-- X-003 (database views and calendar UI) was deferred by the user. Its checkpoint stays on `codex/x-003-databases-calendar`. Resume it after X-004 is merged.
+- (none)
 
 ## X-004 spec
 - The real API key is now configured on the user's machine, but **use `AGENT_FAKE=1` for all your development and tests**. No real API calls.
@@ -48,3 +51,4 @@ Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 - 2026-11-11: C-001 merged into `main`; X-001 can now be finished and reviewed.
 - 2026-11-11: X-001 reviewed and merged into `main` (`d7cbfc8`); lockfile regenerated on Windows (`32c466e`). X-002 assigned.
 - 2026-11-11: X-002 merged (clean install, typecheck, lint, 376 tests). X-003 assigned.
+- 2026-11-11: X-004 merged fast at the user's request (typecheck, ESLint, server tests pass; web test and format follow-ups listed). X-003 resumed.

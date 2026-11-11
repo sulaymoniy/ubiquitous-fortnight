@@ -3,15 +3,17 @@
 Written by the coordinator only. Follow `docs/coordination/PROTOCOL.md`.
 
 ## Current task
-- task: X-003
+- task: X-004
 - revision: 1
 - state: assigned
-- branch: codex/x-003-databases-calendar
-- base: main (X-002 merged)
-- spec: `backlog.md` → X-003 (M2.2 + M3.2: table, board, list, gallery views, filters/sorts, and FullCalendar month/week/day with drag to reschedule), feature-first mode. The backend (C-003) is already on `main`.
+- branch: codex/x-004-agent-panel
+- base: main (user decision: X-004 before X-003)
+- spec: the X-004 list below
 
-## Next task (start immediately after X-003 is marked ready; don't wait for the merge)
-- task: X-004, branch `codex/x-004-agent-panel`, base: your X-003 branch (rebase onto `main` after X-003 merges)
+## Deferred
+- X-003 (database views and calendar UI) was deferred by the user. Its checkpoint stays on `codex/x-003-databases-calendar`. Resume it after X-004 is merged.
+
+## X-004 spec
 - The real API key is now configured on the user's machine, but **use `AGENT_FAKE=1` for all your development and tests**. No real API calls.
 - Build, in this order (feature-first, minimal tests):
   1. **Agent panel** in the right-side slot (replace "coming soon"):

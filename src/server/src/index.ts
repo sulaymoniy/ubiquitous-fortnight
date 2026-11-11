@@ -16,3 +16,6 @@ export {
   type BlockNode,
   type IdBlockNode,
 } from './markdown/markdown.ts';
+export { BUILT_IN_PROFILES } from './agent/profiles.ts';
+export { FakeModelClient, type ModelClient } from './agent/model.ts';
+export { MAX_TOOL_ROUNDS } from './agent/runner.ts';

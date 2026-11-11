@@ -21,6 +21,8 @@ describe('API key handling', () => {
       { method: 'POST', url: '/api/session', payload: { name: '' } },
       { method: 'GET', url: '/api/session' },
       { method: 'GET', url: '/api/workspace' },
+      { method: 'GET', url: '/api/agent/profiles' },
+      { method: 'GET', url: '/api/agent/conversations' },
       { method: 'GET', url: '/api/nope' },
       { method: 'DELETE', url: '/api/session' },
     ];

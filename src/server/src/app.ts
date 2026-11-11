@@ -1,5 +1,8 @@
 import cookie from '@fastify/cookie';
 import multipart from '@fastify/multipart';
+import fastifyStatic from '@fastify/static';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { MAX_UPLOAD_BYTES, SESSION_COOKIE, type MockUser } from '@fortnight/shared';
 import Fastify, { type FastifyServerOptions } from 'fastify';
 import {
@@ -10,6 +13,7 @@ import {
 import type { ServerConfig } from './config.ts';
 import type { AppDatabase } from './db/client.ts';
 import { errorBody, errorHandler, notFoundHandler } from './http/errors.ts';
+import { agentRoutes } from './routes/agent.ts';
 import { databaseRoutes } from './routes/databases.ts';
 import { healthRoutes } from './routes/health.ts';
 import { pageRoutes } from './routes/pages.ts';
@@ -59,7 +63,6 @@ export async function buildApp(options: BuildAppOptions) {
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
   app.setErrorHandler(errorHandler);
-  app.setNotFoundHandler(notFoundHandler);
   app.decorateRequest('user', null);
   // The API speaks JSON, plus multipart for POST /api/uploads; anything else is 415.
   app.removeContentTypeParser('text/plain');
@@ -86,6 +89,21 @@ export async function buildApp(options: BuildAppOptions) {
   await app.register(pageRoutes(ctx), { prefix: '/api' });
   await app.register(searchAndChangesetRoutes(ctx), { prefix: '/api' });
   await app.register(databaseRoutes(ctx), { prefix: '/api' });
+  await app.register(agentRoutes(ctx), { prefix: '/api' });
+
+  // Production: serve the built web app on the same port, with SPA fallback for client routes.
+  const serveWeb = existsSync(path.join(options.config.webDist, 'index.html'));
+  if (serveWeb) {
+    await app.register(fastifyStatic, { root: options.config.webDist, wildcard: false });
+  }
+  app.setNotFoundHandler((request, reply) => {
+    const p = request.url.split('?')[0] ?? '';
+    const isApi = p === '/api' || p.startsWith('/api/') || p.startsWith('/uploads/');
+    if (serveWeb && request.method === 'GET' && !isApi && !path.extname(p)) {
+      return reply.type('text/html').sendFile('index.html');
+    }
+    return notFoundHandler(request, reply);
+  });
   await app.register(uploadRoutes(ctx));
 
   return app;

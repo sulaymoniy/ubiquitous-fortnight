@@ -29,6 +29,7 @@ export class ChangeRecorder {
   }
 
   touch(entity: EntityKind, id: string): void {
+    if (groupRecorder && groupRecorder !== this) return groupRecorder.touch(entity, id);
     const key = `${entity}:${id}`;
     if (!this.before.has(key)) {
       this.before.set(key, { entity, id, value: getStored(this.db, entity, id) });
@@ -42,6 +43,8 @@ export class ChangeRecorder {
 
   /** Writes the changeset and returns its id, or null when nothing actually changed. */
   commit(meta: ChangesetMeta): string | null {
+    // Inside withGroupedChangeset, the group writes one changeset at the end.
+    if (groupRecorder && groupRecorder !== this) return null;
     const ops: ChangeOp[] = [];
     const inverse: ChangeOp[] = [];
     for (const { entity, id, value: before } of this.before.values()) {
@@ -76,4 +79,31 @@ export class ChangeRecorder {
 /** Runs `fn` in one SQLite transaction (synchronous; rolls back on throw). */
 export function inTransaction<R>(db: AppDatabase, fn: () => R): R {
   return db.$client.transaction(fn)();
+}
+
+let groupRecorder: ChangeRecorder | null = null;
+
+/**
+ * Runs `fn` in one transaction and records everything it changes as ONE changeset with `meta`
+ * (used for agent tool calls: one changeset per tool call, even when the tool calls several
+ * services). Recorders created inside `fn` forward to the group and do not write their own.
+ * Returns the result and the changeset id (null when nothing changed).
+ */
+export function withGroupedChangeset<R>(
+  db: AppDatabase,
+  meta: ChangesetMeta,
+  fn: () => R,
+): { result: R; changesetId: string | null } {
+  return inTransaction(db, () => {
+    if (groupRecorder) throw new Error('grouped changesets cannot nest');
+    const rec = new ChangeRecorder(db);
+    groupRecorder = rec;
+    try {
+      const result = fn();
+      groupRecorder = null;
+      return { result, changesetId: rec.commit(meta) };
+    } finally {
+      groupRecorder = null;
+    }
+  });
 }

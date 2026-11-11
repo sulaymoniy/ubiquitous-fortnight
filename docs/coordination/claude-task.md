@@ -1,13 +1,13 @@
 # Claude task
 
 ## Status
-- task: C-003
+- task: C-004
 - revision: 1
 - state: ready_for_review
-- branch: claude/c-003-databases-calendar
-- commit: head of the branch (this status is in the same commit as the tests, per efficiency mode; WIP routes were `6dc0e4d`)
-- updated: 2026-11-11T17:56:45+05:00
-- note: C-003 done: databases, properties, rows (+ row bodies), views, query (all filter ops, sorts, cursor), calendar events with recurrence. typecheck, lint, format pass; server 345 + web 12 tests pass. No dependency changes.
+- branch: claude/c-004-agent-build
+- commit: head of the branch (status is in the same commit as the work, per efficiency mode)
+- updated: 2026-11-11T18:22:05+05:00
+- note: C-004 done (rebased on main `3a36334` with X-002): agent backend (profiles, conversations, SSE tool loop with 19 tools, one changeset per tool call, run undo, cancel, inline AI, AGENT_FAKE=1), `npm run build && npm start` on one port, root README. Server 360 + web 31 tests pass; clean `npm ci` checked.
 
 ## Role and ownership (accepted by the user and Codex)
 
@@ -15,6 +15,18 @@
 - Claude owns: root workspace config (`package.json`, `package-lock.json` changes for its packages, `tsconfig.base.json`, `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, `.gitattributes`, `scripts/`, `.env.example`), `src/shared/**` (contract keeper), `src/server/**`, `tests/server/**`, `tests/contract/**`, this record.
 - Codex owns: `src/web/**`, `tests/web/**`, `tests/e2e/**`, `docs/coordination/codex-task.md`, `AGENTS.md`.
 - Coordinator owns: `PROTOCOL.md`, `backlog.md`, `plan.md`, `inbox/*`.
+
+## C-004: agent backend, production build, README (M4.1)
+
+- Routes as in contract: `GET /api/agent/profiles`, `PATCH /api/agent/profiles/default`, `GET/POST /api/agent/conversations`, `GET/PATCH /api/agent/conversations/:id`, `POST /api/agent/conversations/:id/messages` (SSE), `POST /api/agent/runs/:runId/{cancel,undo}`, `POST /api/ai/inline` (SSE). A second message while a reply runs is 409 `agent_busy`.
+- Model client (`src/server/src/agent/model.ts`), checked against the current Claude API docs: `@anthropic-ai/sdk@1.8.0`, streaming `beta.messages.stream` + `finalMessage()`, manual tool loop (max 15 rounds), `thinking: {type: "adaptive"}`, explicit `output_config.effort` from the profile, cached system prompt (tools + system are the fixed prefix; time, zone, page and user go in the user message), `eager_input_streaming` with every input validated by the shared Zod schema before it runs, `fallbacks: "default"` (server-side refusal fallback), `refusal` / `max_tokens` checked before tools run. No forced `tool_choice`. Tool schemas are not `strict` (I cannot verify strict-mode schema limits without calling the API); server-side validation covers it.
+- Profiles: Opus 5.5 (high, all tools, default), Sonnet 5.5 (medium, all), Haiku 5.5 (low, read only); extra ones from `agent-profiles.json`. The exact API history (incl. thinking blocks) is stored per conversation (migration `0003`) and replayed unchanged, so switching profile mid-conversation works.
+- One changeset per tool call: `withGroupedChangeset` runs the tool in one transaction and records everything it changes as a single changeset (`source: agent`, `agentRunId`, `toolUseId`, label `Agent: <tool>`). Errors become `is_error` results and roll back.
+- No key (and no fake mode): SSE `error` `agent_key_missing` with "Add your Anthropic API key to .env...". API errors are reported without details or secrets.
+- Fake model (`AGENT_FAKE=1`): scripted turns for "...review every Friday", "summarize this page", "what's on my week?"; hooks "bad tool input", "loop forever", "slow"; echo otherwise. Inline AI works in fake mode too.
+- Production: `npm run build` (server `tsc`, web `vite build`), `npm start` = server via `tsx` serving `src/web/dist` with SPA fallback on the same port (default 3001). Checked live: `/`, an app route, a JS asset and `/api/health` all 200; unknown `/api` 401. No `ANTHROPIC`/`sk-ant` strings in the web build.
+- Tests: `tests/server/agent.test.ts` (three prompts end to end over SSE with contract-checked events, run undo = exact prior state, invalid input, iteration cap, cancel + busy 409, read-only profile, profile switch, inline AI for all 8 actions, name resolution, no-key error, per-profile model/effort/tools), `tests/server/production.test.ts`. Seeded default profile is now `opus-full`.
+- New dependencies (no install scripts): `@anthropic-ai/sdk@1.8.0`, `@fastify/static@10.1.10`. Contract requests: none.
 
 ## C-003: databases, properties, rows, views, query, calendar (M2.1 + M3.1)
 

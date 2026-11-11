@@ -1,0 +1,1 @@
+ALTER TABLE `agent_conversations` ADD `api_messages` text DEFAULT '[]' NOT NULL;

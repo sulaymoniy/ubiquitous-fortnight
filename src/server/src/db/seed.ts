@@ -400,7 +400,7 @@ export function seedDatabase(db: AppDatabase, options: SeedOptions): SeedResult 
     }
 
     tx.insert(t.appSettings)
-      .values({ key: 'defaultAgentProfileId', value: 'sonnet-full' })
+      .values({ key: 'defaultAgentProfileId', value: 'opus-full' })
       .onConflictDoNothing()
       .run();
 

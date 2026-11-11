@@ -17,6 +17,12 @@ export interface ServerConfig {
   agentKeyConfigured: boolean;
   /** Time zone for a newly seeded workspace. */
   seedTimeZone: string;
+  /** `AGENT_FAKE=1`: scripted model turns, no API calls (tests, e2e, development). */
+  agentFake: boolean;
+  /** Built web app to serve (production); served only when the folder exists. */
+  webDist: string;
+  /** Optional extra agent profiles. */
+  agentProfilesFile: string;
 }
 
 /**
@@ -40,5 +46,8 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
     logLevel: env.LOG_LEVEL ?? 'info',
     agentKeyConfigured: (env.ANTHROPIC_API_KEY ?? '').trim().length > 0,
     seedTimeZone: env.FORTNIGHT_TIME_ZONE ?? 'UTC',
+    agentFake: env.AGENT_FAKE === '1' || env.AGENT_FAKE === 'true',
+    webDist: path.resolve(REPO_ROOT, env.WEB_DIST ?? 'src/web/dist'),
+    agentProfilesFile: path.resolve(REPO_ROOT, env.AGENT_PROFILES_FILE ?? 'agent-profiles.json'),
   };
 }

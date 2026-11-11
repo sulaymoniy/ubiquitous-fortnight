@@ -10,6 +10,7 @@ import {
 import type { ServerConfig } from './config.ts';
 import type { AppDatabase } from './db/client.ts';
 import { errorBody, errorHandler, notFoundHandler } from './http/errors.ts';
+import { databaseRoutes } from './routes/databases.ts';
 import { healthRoutes } from './routes/health.ts';
 import { pageRoutes } from './routes/pages.ts';
 import { searchAndChangesetRoutes } from './routes/search-changesets.ts';
@@ -84,6 +85,7 @@ export async function buildApp(options: BuildAppOptions) {
   await app.register(sessionRoutes(ctx), { prefix: '/api' });
   await app.register(pageRoutes(ctx), { prefix: '/api' });
   await app.register(searchAndChangesetRoutes(ctx), { prefix: '/api' });
+  await app.register(databaseRoutes(ctx), { prefix: '/api' });
   await app.register(uploadRoutes(ctx));
 
   return app;

@@ -4,7 +4,7 @@
 - revision: 1
 - state: working
 - branch: codex/x-001-m0-web
-- commit: ff2bfdbe8062c9f2c5c86fe352116ac3f8654186
+- commit: c251a8ec3f434661e62dc502f4a9e37fc07b42c7
 - updated: 2026-11-11T12:03:40Z
 - note: UI standard applied; 6 web tests, frontend typecheck and lint pass under Node 22; desktop/tablet visual checks pass with mocked API. Awaiting C-001 on main for shared imports and real API/e2e validation.
 
@@ -65,7 +65,7 @@ These are implementation precision items within the accepted design, not a new f
 
 - Bundled Inter via @fontsource/inter (no font CDN), Lucide icons, and shared tokens in src/web/src/styles/tokens.css. Centered demo-login card; neutral/olive palette; AA text contrast, skeletons, focus states, Escape dismissal, and tablet sidebar collapse.
 - Fixed logout cache observer handling after a regression test exposed a stale authenticated shell.
-- Passed frontend typecheck, lint, 6 session tests, and the pre-token-refresh build. Final build will be rerun with the final package versions.
+- Passed frontend typecheck, lint, 6 session tests, and production build with the final Node 22/tooling versions. Root checks and real API e2e remain gated on C-001.
 - Browser check with mock API: screenshots inspected for desktop login and shell and 768px tablet; no horizontal overflow at 1440, 1024, 768, 390px; no page errors. This is visual smoke verification, not the real-backend e2e acceptance check.
 - Temporary standalone dependency aliases/configuration will be removed after C-001 workspace installation. API contract types remain TEMP(contract); ready_for_review is gated on shared schemas and full root/e2e checks.
 - A standalone install with old npm 11.2.0 failed resolving updated peers; npm 11.6.2 installed the matched toolchain successfully without bypassing peer constraints. Audit now reports only moderate dev-tool advisories (same tooling family noted by C-001); no critical advisories remain in the isolated web install.
